@@ -1,0 +1,24 @@
+<ActionBar class="action-bar">
+  <Label class="action-bar-title" text="Login"></Label>
+</ActionBar>
+
+<StackLayout class="form p-30" [formGroup]="logInForm">
+  <StackLayout>
+    <Label class="h3" text="Username" textWrap="true"></Label>
+    <TextField class="input input-border m-b-15" hint="Username" formControlName="username" [isEnabled]="!loading"
+               autocorrect="false"
+               autocapitalizationType="none"
+               returnKeyType="next"></TextField>
+  </StackLayout>
+  <StackLayout class="m-y-5">
+    <Label class="h3" text="Password" textWrap="true"></Label>
+    <TextField class="input input-border" hint="Password" formControlName="password" [isEnabled]="!loading"
+               secure="true"
+               returnKeyType="done" (returnPress)="login()"></TextField>
+  </StackLayout>
+
+  <Button text="Log In" class="btn btn-primary btn-blue" (tap)="login()" [isEnabled]="!loading"></Button>
+  <ActivityIndicator [busy]="loading"></ActivityIndicator>
+</StackLayout>
+
+<!--<Button text="login works!" class="btn btn-primary" [routerLink]="['dash']"></Button>-->

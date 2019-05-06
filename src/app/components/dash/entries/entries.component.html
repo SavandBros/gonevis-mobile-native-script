@@ -1,0 +1,34 @@
+<Page class="page" (loaded)="onPageLoaded()">
+  <ActionBar class="action-bar" title="Posts">
+    <NavigationButton android.systemIcon="ic_menu_home"></NavigationButton>
+  </ActionBar>
+  <RadListView #radListViewComponent class="list-group"
+               [items]="entries.results"
+               pullToRefresh="true"
+               (pullToRefreshInitiated)="getEntries($event)"
+               loadOnDemandMode="Auto"
+               (loadMoreDataRequested)="paginate($event)"
+               (itemTap)="navigateToWrite($event)">
+    <ng-template tkListItemTemplate let-entry="item" let-index="index">
+      <StackLayout class="list-group-item" borderBottomWidth="1px" borderBottomColor="#eee">
+        <GridLayout rows="auto *" columns="*" class="list-group-item" padding="4">
+          <Label class="list-group-item-heading font-weight-bold" row="0" col="0"
+                 [text]="entry.title"></Label>
+          <StackLayout row="1" col="0">
+            <Label [text]="entry.excerpt" class="m-y-10 font-weight-normal"></Label>
+            <FlexboxLayout flexDirection="row">
+              <!-- Draft -->
+              <Label class="list-group-item-text" [text]="'Edited ' + (entry.updated | date)"
+                     *ngIf="entry.isDraft" flexGrow="1"></Label>
+              <!-- Published -->
+              <Label class="list-group-item-text" [text]="'Published ' + (entry.published | date)"
+                     *ngIf="!entry.isDraft" flexGrow="1"></Label>
+              <Label (tap)="$event.stopPropagation; options(entry.id, index)"
+                     class="fas list-group-item-text" text="&#xf141;" flexGrow="0"></Label>
+            </FlexboxLayout>
+          </StackLayout>
+        </GridLayout>
+      </StackLayout>
+    </ng-template>
+  </RadListView>
+</Page>

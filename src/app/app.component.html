@@ -1,0 +1,30 @@
+<RadSideDrawer>
+  <StackLayout class="sidedrawer-left" tkDrawerContent backgroundColor="white">
+    <StackLayout class="sidedrawer-header" height="auto" *ngIf="authService.isAuth">
+      <Image [src]="blog.logo" class="sidedrawer-header-image"></Image>
+      <GridLayout class="m-b-10 p-0" rows="auto" columns="auto, *" (tap)="hello()">
+        <StackLayout col="0">
+          <Label [text]="blog.title" textWrap="true" class="sidedrawer-header-brand"></Label>
+          <Label [text]="blog.url" textWrap="true" ></Label>
+        </StackLayout>
+        <StackLayout col="1" verticalAlignment="center">
+          <Label class="fas text-center" [text]="getIcon('f105')"></Label>
+        </StackLayout>
+      </GridLayout>
+    </StackLayout>
+    <GridLayout>
+      <RadListView [items]="appPages">
+        <ng-template tkListItemTemplate let-page="item">
+          <StackLayout class="sidedrawer-list-item" (tap)="onNavigationsTap(page.url)"
+                       verticalAlignment="center" [nsRouterLink]="['/dash', page.url]"
+                       nsRouterLinkActive="active">
+            <Label class="fas sidedrawer-list-item-icon" [text]="getIcon(page.icon)"></Label>
+            <Label [text]='page.title' alignSelf="center"
+                   class="sidedrawer-list-item-text" textWrap="true" borderWidth="0"></Label>
+          </StackLayout>
+        </ng-template>
+      </RadListView>
+    </GridLayout>
+  </StackLayout>
+  <page-router-outlet tkMainContent class="page page-content"></page-router-outlet>
+</RadSideDrawer>
