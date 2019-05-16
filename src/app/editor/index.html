@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+  <script src="./lib/nativescript-webview-interface.js"></script>
+  <script src="./config.js"></script>
+  <link href="./editor.css" rel="stylesheet">
+</head>
+<body>
+<div style="height: calc(100% - 50px);">
+  <div id="editor"></div>
+</div>
+<div id="toolbar">
+  <span class="ql-formats highlight-buttons">
+    <button class="ql-bold"></button>
+    <button class="ql-italic"></button>
+    <button class="ql-link"></button>
+  </span>
+  <span class="ql-formats inline-buttons">
+    <button class="ql-header" value="1"></button>
+    <button class="ql-header" value="2"></button>
+    <button class="ql-blockquote"></button>
+    <button class="ql-list" value="ordered"></button>
+    <button class="ql-list" value="bullet"></button>
+    <button class="ql-direction" value="rtl"></button>
+  </span>
+</div>
+</div>
+<script>
+  (function () {
+    "use strict";
+    const Delta = Quill.import('delta');
+
+    let editor = new Quill('#editor', {
+      theme: 'snow',
+      placeholder: 'Content',
+      modules: {
+        toolbar: '#toolbar'
+      },
+      scrollingContainer: '.ql-editor',
+      bounds: '.ql-editor'
+    });
+    const oWebViewInterface = window.nsWebViewInterface;
+    window.getContent = function () {
+      return editor.getContents();
+    };
+    window.setContent = function () {
+      return editor = new Quill('#editor', {
+        theme: 'snow'
+      });
+    };
+
+    editor.on('selection-change', function (range, oldRange, source) {
+      // Toolbar element.
+      const toolbar = document.getElementById('toolbar');
+
+      if (range) {
+        if (range.length === 0) {
+          // Remove highlight mode.
+          toolbar.classList.remove('highlighting-mode');
+          // Update selection.
+          editor.selection.update(Quill.sources.SILENT);
+          // Get editor's bounds based on range's index.
+          let bounds = editor.getBounds(range.index);
+          // Scroll to current cursor.
+          editor.scrollingContainer.scrollTop = bounds.top;
+          // Scroll into view.
+          editor.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
+        } else {
+          toolbar.classList.add('highlighting-mode');
+        }
+      }
+    });
+    // editor.addEventListener('nativeScriptEvent', function(event) { //event bound for NativeScript
+    //     oWebViewInterface.emit('nativeScriptEvent', event.detail);
+    // });
+    oWebViewInterface.on('setContent', function (eventData) {
+      editor.setContents(eventData)
+    });
+  })();
+</script>
+</body>
+</html>
