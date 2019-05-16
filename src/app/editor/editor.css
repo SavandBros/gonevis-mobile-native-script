@@ -1,0 +1,103 @@
+@font-face {
+    font-family: 'Font Awesome\ 5 Free';
+    src: url(../../fonts/fa-solid-900.ttf) format("truetype");
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+i {
+    font-style: normal;
+}
+
+.fas {
+    font-family: 'Font Awesome\ 5 Free';
+    font-weight: 900;
+}
+
+.ql-toolbar.ql-snow {
+    padding: 0;
+    height: 50px;
+    border: none;
+    border-top: 1px solid #ddd;
+}
+
+.ql-toolbar.ql-snow .ql-formats {
+    height: 100%;
+}
+
+.ql-snow.ql-toolbar button, .ql-snow .ql-toolbar button {
+    height: 100%;
+    padding: 0;
+    width: 50px;
+    font-size: 1.1em;
+    user-select: none;
+}
+
+.ql-container.ql-snow {
+    border: none !important;
+    /*height: auto !important;*/
+    /*min-height: 100% !important;*/
+}
+
+.ql-editor {
+    font-size: 1.3em;
+    /*overflow-y: hidden;*/
+}
+
+
+/* Icons */
+
+.ql-header[value~="1"] {
+    font-size: 1.5em !important;
+}
+
+.ql-direction.ql-active {
+    transform: rotateY(180deg);
+}
+
+.ql-direction:not(.ql-active) i.rtl,
+.ql-snow .ql-direction.ql-active i:first-child {
+    display: none;
+}
+
+
+/* Styles */
+
+.ql-snow.ql-toolbar button.ql-active,
+.ql-snow .ql-toolbar button.ql-active {
+    color: #3d5afe !important;
+    background-color: rgba(61, 90, 254, 0.15);
+}
+
+.ql-snow .ql-toolbar button:focus,
+.ql-snow .ql-toolbar button:active,
+.ql-snow.ql-toolbar button:focus,
+.ql-snow.ql-toolbar button:active {
+    outline: none !important;
+}
+
+.ql-formats.highlight-buttons {
+    display: none;
+}
+
+#toolbar.highlighting-mode .ql-formats.inline-buttons {
+    display: none;
+}
+
+#toolbar.highlighting-mode .ql-formats.highlight-buttons {
+    display: flex;
+    margin: 0;
+    justify-content: space-evenly;
+}
+
+#toolbar.highlighting-mode .ql-formats.highlight-buttons::after {
+    content: none !important;
+}
+
+.ql-snow.ql-toolbar.highlighting-mode button, .ql-snow .ql-toolbar button {
+    width: 75px !important;
+}
+
