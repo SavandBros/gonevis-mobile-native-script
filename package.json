@@ -21,6 +21,8 @@
     "@angular/platform-browser": "^7.2.14",
     "@angular/platform-browser-dynamic": "^7.2.14",
     "@angular/router": "^7.2.14",
+    "deep-equal": "^1.0.1",
+    "lodash.clonedeep": "^4.5.0",
     "nativescript-angular": "~7.2.0",
     "nativescript-secure-storage": "^2.4.0",
     "nativescript-theme-core": "~1.0.4",
