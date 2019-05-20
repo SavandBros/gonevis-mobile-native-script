@@ -30,6 +30,7 @@
 <script>
   (function () {
     "use strict";
+    let oldContent;
     const Delta = Quill.import('delta');
 
     let editor = new Quill('#editor', {
@@ -43,12 +44,10 @@
     });
     const oWebViewInterface = window.nsWebViewInterface;
     window.getContent = function () {
-      return editor.getContents();
-    };
-    window.setContent = function () {
-      return editor = new Quill('#editor', {
-        theme: 'snow'
-      });
+      return {
+        content: editor.root.innerHTML,
+        contentEquality: JSON.stringify(oldContent) === JSON.stringify(editor.getContents())
+      };
     };
 
     editor.on('selection-change', function (range, oldRange, source) {
@@ -72,11 +71,9 @@
         }
       }
     });
-    // editor.addEventListener('nativeScriptEvent', function(event) { //event bound for NativeScript
-    //     oWebViewInterface.emit('nativeScriptEvent', event.detail);
-    // });
     oWebViewInterface.on('setContent', function (eventData) {
-      editor.setContents(eventData)
+      editor.setContents(editor.clipboard.convert(eventData));
+      oldContent = Object.assign({}, editor.getContents());
     });
   })();
 </script>
