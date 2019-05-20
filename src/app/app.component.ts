@@ -4,7 +4,9 @@ import { RadSideDrawer } from 'nativescript-ui-sidedrawer';
 import { User, UserBlog } from '~/app/models/user/user';
 import { AuthService } from '~/app/services/auth/auth.service';
 import { RouterExtensions } from 'nativescript-angular';
+import { EntryStatuses } from '~/app/enums/entry_statuses/entry_statuses';
 
+const dialogs = require('tns-core-modules/ui/dialogs');
 
 @Component({
   moduleId: module.id,
@@ -51,7 +53,21 @@ export class AppComponent implements OnInit, AfterViewInit {
     return String.fromCharCode(parseInt(icon, 16));
   }
 
-  onNavigationsTap(url: string) {
+  onNavigationsTap() {
     this.drawer.closeDrawer();
+  }
+
+  logOut(): void {
+    dialogs.confirm({
+      title: 'Logout',
+      message: 'Are you sure you want to logout from your account?',
+      okButtonText: 'Logout',
+      cancelButtonText: 'No'
+    }).then((result: boolean): void => {
+      if (result) {
+        this.authService.unAuth();
+        this.drawer.closeDrawer();
+      }
+    });
   }
 }

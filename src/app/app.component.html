@@ -5,15 +5,15 @@
       <GridLayout class="m-b-10 p-0" rows="auto" columns="auto, *" (tap)="hello()">
         <StackLayout col="0">
           <Label [text]="blog.title" textWrap="true" class="sidedrawer-header-brand"></Label>
-          <Label [text]="blog.url" textWrap="true" ></Label>
+          <Label [text]="blog.url" textWrap="true"></Label>
         </StackLayout>
         <StackLayout col="1" verticalAlignment="center">
           <Label class="fas text-center" [text]="getIcon('f105')"></Label>
         </StackLayout>
       </GridLayout>
     </StackLayout>
-    <GridLayout>
-      <RadListView [items]="appPages">
+    <FlexboxLayout height="100%" flexDirection="column" backgroundColor="#aaa">
+      <RadListView [items]="appPages" flexGrow="1">
         <ng-template tkListItemTemplate let-page="item">
           <StackLayout class="sidedrawer-list-item" (tap)="onNavigationsTap(page.url)"
                        verticalAlignment="center" [nsRouterLink]="['/dash', page.url]"
@@ -24,7 +24,13 @@
           </StackLayout>
         </ng-template>
       </RadListView>
-    </GridLayout>
+      <!-- Logout -->
+      <StackLayout class="sidedrawer-list-item" (tap)="logOut()" verticalAlignment="center">
+        <Label class="fas sidedrawer-list-item-icon" [text]="getIcon('f2f5')"></Label>
+        <Label text='Logout' alignSelf="center"
+               class="sidedrawer-list-item-text" textWrap="true" borderWidth="0"></Label>
+      </StackLayout>
+    </FlexboxLayout>
   </StackLayout>
   <page-router-outlet tkMainContent class="page page-content"></page-router-outlet>
 </RadSideDrawer>
