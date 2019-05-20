@@ -8,6 +8,7 @@ import { AuthService } from '~/app/services/auth/auth.service';
 import { EntryStatuses } from '~/app/enums/entry_statuses/entry_statuses';
 import { EntryService } from '~/app/services/entry/entry.service';
 import { ActivatedRoute, Params } from '@angular/router';
+import { SnackBar } from 'nativescript-snackbar';
 
 const equal = require('deep-equal');
 const cloneDeep = require('lodash.clonedeep');
@@ -54,8 +55,9 @@ export class WriteComponent implements OnInit, OnDestroy {
           this.oldEntry = cloneDeep(data);
           if (data.entrydraft) {
             data = data.entrydraft;
-            console.log('LOADED DRAFT');
-            // this.presentToast('UNPUBLISHED_CHANGES', 'warning');
+            // Create an instance of SnackBar
+            const snackbar = new SnackBar();
+            snackbar.simple('You have unpublished changes', '#fff', '#f57c00').then();
           }
           // Update entry.
           this.entry = data;
