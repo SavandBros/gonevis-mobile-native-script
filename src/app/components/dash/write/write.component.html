@@ -1,4 +1,8 @@
 <Page class="page">
+  <ActionBar class="action-bar" title="">
+    <NavigationButton text="Close" android.systemIcon="ic_menu_back" (tap)="goBack()"></NavigationButton>
+    <ActionItem ios.position="right" text="Publish" android.position="actionBar" (tap)="presentConfirm()"></ActionItem>
+  </ActionBar>
   <GridLayout height="100%" width="100%">
     <FlexboxLayout height="100%" flexDirection="column">
       <!-- Add your page content here -->
