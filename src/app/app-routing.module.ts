@@ -17,8 +17,9 @@ const routes: Routes = [{
     loadChildren: '~/app/components/login/login.module#LoginModule',
     canActivate: [AnonymousGuardService]
 }, {
-    path: 'home',
-    loadChildren: '~/app/home/home.module#HomeModule'
+    path: 'start',
+    loadChildren: '~/app/components/start/start.module#StartModule',
+    canActivate: [AnonymousGuardService]
 }];
 
 @NgModule({
