@@ -1,0 +1,22 @@
+<Page class="page">
+  <ActionBar class="action-bar">
+    <Label class="action-bar-title" text="Get started"></Label>
+  </ActionBar>
+  <StackLayout class="form p-30">
+    <Label class="h3 text-center m-b-20 text-primary" text="Let's create your blog"></Label>
+    <StackLayout class="m-t-20">
+      <FlexboxLayout>
+        <StackLayout flexGrow="1">
+          <TextField class="input input-border" hint="Username" formControlName="username"
+                     [isEnabled]="!loading"
+                     autocorrect="false"
+                     autocapitalizationType="none"
+                     returnKeyType="next"></TextField>
+        </StackLayout>
+        <StackLayout minWidth="50px" class="p-x-10" verticalAlignment="middle" backgroundColor="#3d5afe">
+          <Label text=".gonevis.com" color="#F8F8F8" textWrap="true"></Label>
+        </StackLayout>
+      </FlexboxLayout>
+    </StackLayout>
+  </StackLayout>
+</Page>
