@@ -1,98 +1,104 @@
-import { Injectable } from '@angular/core';
-import { catchError, map } from 'rxjs/operators';
-import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { User, UserBlog } from '../../models/user/user';
-import { ApiService } from '../api/api.service';
+import { AuthResponse } from '@app/interfaces/auth-response';
+import { UserAuth } from '@app/interfaces/user-auth';
+import { BlogService } from '@app/services/blog/blog.service';
 import { SecureStorage } from 'nativescript-secure-storage';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ApiService } from '../api/api.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   // Secure storage instance.
   secureStorage: SecureStorage = new SecureStorage();
-  // token subject
-  private tokenSubject: BehaviorSubject<string> = new BehaviorSubject<string>(null);
-  // User subject
-  private userSubject: BehaviorSubject<User> = new BehaviorSubject<User>(null);
-  public user: Observable<User>;
-  // Blog subject
-  private blogSubject: BehaviorSubject<UserBlog> = new BehaviorSubject<UserBlog>(null);
-  public blog: Observable<UserBlog>;
+
+  /**
+   * Authentication user subject
+   */
+  private userSubject: BehaviorSubject<UserAuth> = new BehaviorSubject<UserAuth>(null);
+
+  /**
+   * Authenticated user
+   */
+  user: Observable<UserAuth>;
 
   constructor(private http: HttpClient, private router: Router, private apiService: ApiService) {
-    console.log(this.apiService.baseApi);
-    // If user is authenticated, then store token and user subjects with their secure storage values.
-    if (this.isAuth) {
-      // Update token subject data.
-      this.tokenSubject.next(this.secureStorage.getSync({ key: 'token' }));
-      // Update user subject data.
-      this.userSubject.next(new User(JSON.parse(this.secureStorage.getSync({ key: 'user' }))));
-      // Update blog subject data.
-      this.blogSubject.next(new UserBlog(JSON.parse(this.secureStorage.getSync({ key: 'blog' }))));
-      // this.secureStorage.setSync({ key: 'blog', value: JSON.stringify(JSON.parse(this.secureStorage.getSync({ key: 'user' })).sites[1]) });
+    // If user is authenticated, then store token and user subjects with their secure storage values
+    if (this.isAuth()) {
+      const userData: UserAuth = JSON.parse(this.secureStorage.getSync({ key: 'user' }));
+      // Update user subject data
+      this.userSubject.next(userData);
+      // Set current blog
+      if (BlogService.currentBlog) {
+        BlogService.currentBlog = BlogService.currentBlog;
+      } else {
+        BlogService.currentBlog = userData.sites[0];
+      }
     }
     this.user = this.userSubject.asObservable();
-    this.blog = this.blogSubject.asObservable();
   }
 
-  public get userValue(): User {
-    return this.userSubject.value;
+  /**
+   * Set/update authenticated user data
+   *
+   * @param userData UserSettings data
+   */
+  setAuthenticatedUser(userData: UserAuth): void {
+    this.secureStorage.setSync({ key: 'user', value: JSON.stringify(userData) });
+    this.userSubject.next(userData);
   }
 
-  public get blogValue(): UserBlog {
-    return this.blogSubject.value;
-  }
-
-  public get tokenValue(): string {
-    return this.tokenSubject.value;
-  }
-
-  public get isAuth(): boolean {
+  /**
+   * @return Is user authenticated or not
+   */
+  isAuth(): boolean {
     return !!this.secureStorage.getSync({ key: 'token' });
   }
 
+  /**
+   * @returns Stored token from secure storage
+   */
+  getToken(): string | null {
+    return this.secureStorage.getSync({ key: 'token' });
+  }
+
+  /**
+   * Un-authenticate user by cleaning secure storage
+   */
   public unAuth(): void {
-    // Clear secure storage.
+    // Clear secure storage
     this.secureStorage.removeAllSync();
-    // Clear token subject value.
-    this.tokenSubject.next(null);
-    // Clear user subject value.
+    // Clear user subject value
     this.userSubject.next(null);
-    // Clear blog subject value.
-    this.blogSubject.next(null);
-    // Redirect user to login page.
+    // Clear current blog
+    BlogService.currentBlog = null;
+    // Redirect user to login page
     this.router.navigateByUrl('/login');
   }
 
-  public changeBlog(blog: UserBlog): void {
-    this.secureStorage.setSync({ key: 'blog', value: JSON.stringify(blog) });
-    this.blogSubject.next(blog);
-    this.router.navigate(['/dash', 'posts']);
-  }
-
-  login(payload: { username: string, password: string }): Observable<string> {
-    return this.http.post(this.apiService.baseApi + 'account/login/', payload)
+  /**
+   * Sign user in
+   *
+   * @param username User username
+   * @param password User password
+   */
+  login(username: string, password: string): Observable<string> {
+    return this.http.post<AuthResponse>(`${this.apiService.base.v1}account/login/`, { username, password })
       .pipe(
-        map((data: object): string => {
-          // Store JWT into secure storage.
-          this.secureStorage.setSync({ key: 'token', value: data['token'] });
-          // Store user into secure storage.
-          this.secureStorage.setSync({ key: 'user', value: JSON.stringify(data['user']) });
-          // Store first blog into secure storage.
-          this.secureStorage.setSync({ key: 'blog', value: JSON.stringify(data['user'].sites[0]) });
-          // Update token subject data.
-          this.tokenSubject.next(data['token']);
-          // Update user subject data.
-          this.userSubject.next(new User(data['user']));
-          // Update blog subject data.
-          this.blogSubject.next(this.userValue.sites[0]);
-          // Return raw user data.
-          return data['user'].username;
+        map((data: AuthResponse): string => {
+          // Store JWT into secure storage
+          this.secureStorage.setSync({ key: 'token', value: data.token });
+          // Update user subject data
+          this.setAuthenticatedUser(data.user);
+          // Store current blog into local storage
+          BlogService.currentBlog = data.user.sites[1];
+          // Return user's username
+          return data.user.username;
         }),
-        catchError(this.apiService.handleError)
       );
   }
 }
