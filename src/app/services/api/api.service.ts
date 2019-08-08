@@ -1,22 +1,28 @@
 import { Injectable } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpClient } from '@angular/common/http';
+import { ApiResponse } from '@app/interfaces/api-response';
 import { Observable, throwError } from 'rxjs';
 import { environment } from '~/environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ApiService {
 
-  public readonly baseApi: string = environment.api;
+  /**
+   * Base API endpoint URL
+   */
+  readonly base: { v1: string, zero: string } = environment.api;
 
-  constructor() {
+  constructor(private http: HttpClient) {
   }
 
-  public handleError(error: HttpErrorResponse): Observable<never> {
-      // The response body may contain clues as to what went wrong,
-    console.error('Backend returned code:', error.status, 'body was: ', error.error);
-    // return an observable with a user-facing error message
-    return throwError(error.error);
+  /**
+   * Get endpoint
+   *
+   * @param endpoint Endpoint to get
+   */
+  getEndpoint<T>(endpoint: string): Observable<ApiResponse<T>> {
+    return this.http.get<ApiResponse<T>>(endpoint);
   }
 }
