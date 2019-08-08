@@ -1,36 +1,31 @@
 <RadSideDrawer>
-  <StackLayout class="sidedrawer-left" tkDrawerContent backgroundColor="white">
-    <StackLayout class="sidedrawer-header" height="auto" *ngIf="authService.isAuth">
-      <Image [src]="blog.logo" class="sidedrawer-header-image"></Image>
-      <GridLayout class="m-b-10 p-0" rows="auto" columns="auto, *" (tap)="hello()">
-        <StackLayout col="0">
-          <Label [text]="blog.title" textWrap="true" class="sidedrawer-header-brand"></Label>
-          <Label [text]="blog.url" textWrap="true"></Label>
-        </StackLayout>
-        <StackLayout col="1" verticalAlignment="center">
-          <Label class="fas text-center" [text]="getIcon('f105')"></Label>
-        </StackLayout>
-      </GridLayout>
+  <StackLayout tkDrawerContent class="nt-drawer__content">
+    <StackLayout *ngIf="authService.isAuth()" class="nt-drawer__header" height="auto">
+      <StackLayout class="pull-left">
+        <Image [src]="blog.media.logo.thumbnail_48x48" width="48" height="48"
+               class="nt-drawer__header-image m-0" *ngIf="blog.media.logo"></Image>
+      </StackLayout>
+      <FlexboxLayout flexDirection="column" class="m-t-10">
+        <Label [text]="blog.title" textWrap="true"></Label>
+        <Label [text]="blog.url" textWrap="true"></Label>
+      </FlexboxLayout>
     </StackLayout>
-    <FlexboxLayout height="100%" flexDirection="column" backgroundColor="#aaa">
-      <RadListView [items]="appPages" flexGrow="1">
-        <ng-template tkListItemTemplate let-page="item">
-          <StackLayout class="sidedrawer-list-item" (tap)="onNavigationsTap(page.url)"
-                       verticalAlignment="center" [nsRouterLink]="['/dash', page.url]"
-                       nsRouterLinkActive="active">
-            <Label class="fas sidedrawer-list-item-icon" [text]="getIcon(page.icon)"></Label>
-            <Label [text]='page.title' alignSelf="center"
-                   class="sidedrawer-list-item-text" textWrap="true" borderWidth="0"></Label>
-          </StackLayout>
-        </ng-template>
-      </RadListView>
-      <!-- Logout -->
-      <StackLayout class="sidedrawer-list-item" (tap)="logOut()" verticalAlignment="center">
-        <Label class="fas sidedrawer-list-item-icon" [text]="getIcon('f2f5')"></Label>
-        <Label text='Logout' alignSelf="center"
-               class="sidedrawer-list-item-text" textWrap="true" borderWidth="0"></Label>
+    <FlexboxLayout height="100%" flexDirection="column" *ngIf="authService.isAuth()">
+      <ScrollView flexGrow="1">
+        <ListView [items]="appPages" (itemTap)="onNavigationsTap($event)" separatorColor="white">
+          <ng-template let-page="item">
+            <StackLayout orientation="horizontal" class="p-y-10 p-x-20" [ngClass]="{'active': isRouteActive(page.url)}">
+              <Label class="fas p-r-20" [text]="getIcon(page.icon)"></Label>
+              <Label [text]='page.title' alignSelf="center" textWrap="true"></Label>
+            </StackLayout>
+          </ng-template>
+        </ListView>
+      </ScrollView>
+      <StackLayout orientation="horizontal" class="p-y-10 p-x-20" (tap)="logOut()">
+        <Label class="fas p-r-20" [text]="getIcon('f2f5')"></Label>
+        <Label text='Logout' alignSelf="center" textWrap="true"></Label>
       </StackLayout>
     </FlexboxLayout>
   </StackLayout>
-  <page-router-outlet tkMainContent class="page page-content"></page-router-outlet>
+  <page-router-outlet tkMainContent class="nt-page"></page-router-outlet>
 </RadSideDrawer>
