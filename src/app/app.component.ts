@@ -31,17 +31,17 @@ export class AppComponent implements OnInit, AfterViewInit {
   /**
    * Authenticated user
    */
-  public user: UserAuth;
+  user: UserAuth;
 
   /**
    * Current blog
    */
-  public blog: BlogMinimalUser;
+  blog: BlogMinimalUser;
 
   /**
    * App pages
    */
-  public appPages = [{
+  appPages = [{
     title: 'Posts',
     url: 'posts',
     icon: 'f550',
