@@ -1,16 +1,19 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, Data } from '@angular/router';
-import Entry from '~/app/models/entry/entry';
-import { ApiResponseService } from '~/app/services/base-model/api-response.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { EntryService } from '~/app/services/entry/entry.service';
-import { AuthService } from '~/app/services/auth/auth.service';
-import { ListViewEventData, ListViewLoadOnDemandMode } from 'nativescript-ui-listview';
-import { LoadOnDemandListViewEventData } from 'nativescript-ui-listview/ui-listview.common';
-import { RadListViewComponent } from 'nativescript-ui-listview/angular';
-import { action, ActionOptions, ConfirmOptions } from 'tns-core-modules/ui/dialogs';
-import { confirm } from 'tns-core-modules/ui/dialogs';
+import { ActivatedRoute, Data, Params, Router } from '@angular/router';
+import { EntriesService } from '@app/components/dash/entries/entries.service';
+import { EntryStatuses } from '@app/enums/entrt-statuses';
+import { ApiResponse } from '@app/interfaces/api-response';
+import { EntriesResponse } from '@app/interfaces/entries-response';
+import { Entry } from '@app/interfaces/entry';
+import { EntryTab } from '@app/interfaces/entry-tab';
+import { ApiService } from '@app/services/api/api.service';
 import { RouterExtensions } from 'nativescript-angular';
+import { ListViewEventData, ListViewLoadOnDemandMode } from 'nativescript-ui-listview';
+import { RadListViewComponent } from 'nativescript-ui-listview/angular';
+import { LoadOnDemandListViewEventData } from 'nativescript-ui-listview/ui-listview.common';
+import { action, ActionOptions, ConfirmOptions, confirm } from 'tns-core-modules/ui/dialogs';
+import { SegmentedBarItem } from 'tns-core-modules/ui/segmented-bar';
 
 @Component({
   selector: 'ns-entries',
@@ -19,78 +22,152 @@ import { RouterExtensions } from 'nativescript-angular';
   moduleId: module.id,
 })
 export class EntriesComponent implements OnInit {
-  @ViewChild('radListViewComponent') radListView: RadListViewComponent;
-  // This variable indicates whether we are getting entries or not.
+
+  /**
+   * RadListView component reference
+   */
+  @ViewChild('radListViewComponent', { static: false }) radListView: RadListViewComponent;
+
+  /**
+   * Entry tabs
+   */
+  tabs: EntryTab[] = [{
+    label: 'Published',
+    queryParam: 'published',
+    status: EntryStatuses.PUBLISHED,
+  }, {
+    label: 'Draft',
+    queryParam: 'draft',
+    status: EntryStatuses.DRAFT,
+  }];
+
+  /**
+   * Current entry tab
+   */
+  currentTab: EntryTab;
+
+  /**
+   * API loading indicator
+   */
   loading: boolean;
-  // Entries API response.
-  entries: ApiResponseService<Entry> = new ApiResponseService<Entry>(0, null, null, []);
-  // This variable indicates whether we should show entries or pages.
+
+  /**
+   * Entries API response
+   */
+  entries: ApiResponse<Entry>;
+
+  /**
+   * Indicates whether to load pages or posts
+   */
   isPage: boolean;
-  // Search form.
+
+  /**
+   * Search form
+   */
   searchForm: FormGroup;
 
-  constructor(private route: ActivatedRoute, private changeDetectionRef: ChangeDetectorRef,
-              private routerExtensions: RouterExtensions, private formBuilder: FormBuilder,
-              private entryService: EntryService, private authService: AuthService) {
-    // Update loading state.
-    this.loading = true;
-    // Setup search form.
-    this.searchForm = this.formBuilder.group({
-      text: ['', Validators.required]
-    });
+  hello: SegmentedBarItem[] = [];
+
+  constructor(private router: Router,
+              private activatedRoute: ActivatedRoute,
+              private changeDetectionRef: ChangeDetectorRef,
+              private routerExtensions: RouterExtensions,
+              private formBuilder: FormBuilder,
+              private apiService: ApiService,
+              private entriesService: EntriesService) {
   }
 
-  ngOnInit() {
-    // Param event subscription.
-    this.route.data.subscribe((value: Data): void => {
-      this.isPage = !!value.isPage;
+  ngOnInit(): void {
+    this.tabs.map((tab: EntryTab): void => {
+      const item = new SegmentedBarItem();
+      item.title = tab.label;
+      this.hello.push(item);
+    });
+    /**
+     * Setup search form
+     */
+    this.searchForm = this.formBuilder.group({
+      text: ['', Validators.required],
+    });
+    /**
+     * Subscribe to current state's query params changes
+     */
+    this.activatedRoute.queryParams.subscribe((params: Params): void => {
+      this.isPage = this.activatedRoute.snapshot.data.isPage;
+      this.currentTab = this.tabs.find((tab: EntryTab): boolean => params.status === tab.queryParam);
+      if (!this.currentTab) {
+        this.router.navigate([], {
+          queryParams: {
+            status: 'published',
+          },
+          queryParamsHandling: 'merge',
+        });
+        return;
+      }
       this.getEntries();
     });
   }
 
-  onPageLoaded() {
+  /**
+   * On page loaded callback
+   */
+  onPageLoaded(): void {
     this.radListView.nativeElement.loadOnDemandMode = ListViewLoadOnDemandMode.None;
   }
 
+  /**
+   * Get entries
+   *
+   * @param args Generic scheme for event arguments provided to handlers of events exposed
+   */
   getEntries(args?: ListViewEventData): void {
-    // Update loading state.
     this.loading = true;
-    // Set needed params.
-    const params: { [key: string]: string } = {
-      site: this.authService.blogValue.id,
-      is_page: this.isPage.toString(),
-      search: this.searchForm.controls.text.value
-    };
-    // API call.
-    this.entryService.get('website/entry/', params).subscribe((data: ApiResponseService<Entry>): void => {
-      // If there was a refresh event, then stop refreshing.
-      this.entries = data;
-      // Detect changes.
-      this.changeDetectionRef.detectChanges();
-      // Update loading state.
-      this.loading = false;
-      // If args exist, then stop refreshing.
-      if (args) {
-        this.radListView.nativeElement.notifyPullToRefreshFinished();
-      }
-      // If there is pagination, then activate load on demand.
-      if (data.next) {
-        this.radListView.nativeElement.loadOnDemandMode = ListViewLoadOnDemandMode.Auto;
-      }
-    });
+    // API call
+    this.entriesService.getEntries(this.isPage, this.currentTab.status, this.searchForm.controls.text.value)
+      .subscribe((data: EntriesResponse): void => {
+        this.loading = false;
+        if (this.currentTab.status !== data.status) {
+          return;
+        }
+        this.entries = data.response;
+        /**
+         * Detect changes
+         */
+        this.changeDetectionRef.detectChanges();
+        /**
+         * If args exist, then stop refreshing
+         */
+        if (args) {
+          this.radListView.nativeElement.notifyPullToRefreshFinished();
+        }
+        /**
+         * If there is pagination, then activate load on demand
+         */
+        if (data.response.next) {
+          this.radListView.nativeElement.loadOnDemandMode = ListViewLoadOnDemandMode.Auto;
+        }
+      });
   }
 
-  paginate(args: LoadOnDemandListViewEventData): void {
-    this.entryService.paginate(this.entries.next)
-      .subscribe((data: ApiResponseService<Entry>): void => {
-        // Update next and pre URLs.
+  /**
+   * Load more
+   *
+   * @param args Load on demand event
+   */
+  loadMore(args: LoadOnDemandListViewEventData): void {
+    if (!this.entries.next) {
+      return;
+    }
+    this.apiService.getEndpoint<Entry>(this.entries.next)
+      .subscribe((data: ApiResponse<Entry>): void => {
         this.entries.next = data.next;
         this.entries.previous = data.previous;
-        // Push new entries to entries list.
         data.results.map((entry: Entry): void => {
           this.entries.results.push(entry);
         });
-        // Complete pagination.
+        /**
+         * Deactivate load on demand
+         */
         if (!data.next) {
           this.radListView.nativeElement.loadOnDemandMode = ListViewLoadOnDemandMode.None;
         }
@@ -98,43 +175,69 @@ export class EntriesComponent implements OnInit {
       });
   }
 
+  /**
+   * Display a action box with 2 options: 'Delete' and 'Edit'
+   *
+   * @param entryId Entry ID
+   * @param index Entry index in list
+   */
   options(entryId: string, index: number): void {
-    // Set needed options.
+    /**
+     * Set needed options
+     */
     const actionOptions: ActionOptions = {
       cancelButtonText: 'Cancel',
-      actions: ['Edit', 'Delete']
+      actions: ['Edit', 'Delete'],
     };
-    // Action callback.
+    /**
+     * Action callback
+     */
     action(actionOptions).then((result: string): void => {
-      // If result was 'Delete'.
+      /**
+       * If result was 'Delete'
+       */
       if (result === 'Delete') {
         const confirmOptions: ConfirmOptions = {
           title: 'Delete',
           message: 'This action is not reversible. Are you sure?',
           okButtonText: 'Delete',
-          cancelButtonText: 'Cancel'
+          cancelButtonText: 'Cancel',
         };
 
-        confirm(confirmOptions).then((result: boolean) => {
-          if (result) {
-            this.entryService.remove(`website/entry/${entryId}/`).subscribe((): void => {
-              // Remove entry from list.
+        confirm(confirmOptions).then((confirmResult: boolean): void => {
+          if (confirmResult) {
+            this.entriesService.removeEntry(entryId).subscribe((): void => {
               this.entries.results.splice(index, 1);
-              // Detect changes.
+              /**
+               * Detect changes
+               */
               this.changeDetectionRef.detectChanges();
             });
           }
         });
       }
-      // If results was 'Edit's
+      /**
+       * If results was 'Edit'
+       */
       if (result === 'Edit') {
         this.routerExtensions.navigate(['dash', 'write', entryId]);
       }
     });
   }
 
-  navigateToWrite(args: ListViewEventData) {
+  /**
+   * Navigate to edit
+   *
+   * @param args Generic scheme for event arguments provided to handlers of events exposed
+   */
+  navigateToWrite(args: ListViewEventData): void {
     this.routerExtensions.navigate(['dash', 'write', this.entries.results[args.index].id]);
-    // this.entries.results[args.index];
+  }
+
+  /**
+   * @return Entry statuses
+   */
+  entryStatuses(): typeof EntryStatuses {
+    return EntryStatuses
   }
 }
