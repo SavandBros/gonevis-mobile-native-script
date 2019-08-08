@@ -1,14 +1,14 @@
 import { ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Params } from '@angular/router';
+import { WriteService } from '@app/components/dash/write/write.service';
+import { EntryStatuses } from '@app/enums/entrt-statuses';
+import { Entry } from '@app/interfaces/entry';
+import { BlogService } from '@app/services/blog/blog.service';
+import { SnackBar } from '@nstudio/nativescript-snackbar';
+import { RouterExtensions } from 'nativescript-angular';
 import { WebViewInterface } from 'nativescript-webview-interface';
 import { LoadEventData, WebView } from 'tns-core-modules/ui/web-view';
-import { WriteService } from '~/app/services/write/write.service';
-import { RouterExtensions } from 'nativescript-angular';
-import Entry from '~/app/models/entry/entry';
-import { AuthService } from '~/app/services/auth/auth.service';
-import { EntryStatuses } from '~/app/enums/entry_statuses/entry_statuses';
-import { EntryService } from '~/app/services/entry/entry.service';
-import { ActivatedRoute, Params } from '@angular/router';
-import { SnackBar } from 'nativescript-snackbar';
+
 
 const equal = require('deep-equal');
 const cloneDeep = require('lodash.clonedeep');
@@ -21,53 +21,77 @@ const dialogs = require('tns-core-modules/ui/dialogs');
   moduleId: module.id,
 })
 export class WriteComponent implements OnInit, OnDestroy {
-  oWebViewInterface: any;
-  @ViewChild('webView') webView: ElementRef;
-  // Current entry's id.
+
+  /**
+   * Webview element reference
+   */
+  @ViewChild('webView', { static: false }) webView: ElementRef;
+
+  /**
+   * Current entry ID
+   */
   private entryId: string;
-  // Instance of entry.
-  entry: Entry = new Entry({ content: '', site: this.authService.blogValue.id });
-  // And instance of entry which will hold old entry.
+
+  /**
+   * Old entry
+   */
   private oldEntry: Entry;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef, private routerExtensions: RouterExtensions,
-              private route: ActivatedRoute, private ngZone: NgZone,
-              private writeService: WriteService, private authService: AuthService,
-              private entryService: EntryService) {
+  /**
+   * Webview interface
+   */
+  oWebViewInterface: WebViewInterface;
+
+  entry: Entry = {
+    title: '',
+    content: '',
+    status: EntryStatuses.DRAFT,
+    site: BlogService.currentBlog.id,
+  };
+
+  constructor(private changeDetectorRef: ChangeDetectorRef,
+              private routerExtensions: RouterExtensions,
+              private route: ActivatedRoute,
+              private ngZone: NgZone,
+              private writeService: WriteService) {
   }
 
   ngOnInit() {
-    // Instance of entry.
-    this.entry = new Entry({ content: '', site: this.authService.blogValue.id });
-    // Make a copy of entry.
+    /**
+     * Make a copy of entry
+     */
     this.oldEntry = cloneDeep(this.entry);
-    // Subscribe to current route's params.
+    /**
+     * Subscribe to current route's params
+     */
     this.route.params.subscribe((params: Params): void => {
-      // Check if there is 'entryId' in params.
+      /**
+       * Check entry ID existence
+       */
       if (params.entryId) {
-        // Update current entry's id.
         this.entryId = params.entryId;
-        // Get entry based on param's 'entryId' value.
-        this.entryService.detail(`website/entry/${params.entryId}/`).subscribe((data: Entry): void => {
+        this.writeService.getEntry(params.entryId).subscribe((data: Entry): void => {
           this.initWebView();
-
-          // Make a copy of returned data.
           this.oldEntry = cloneDeep(data);
           if (data.entrydraft) {
             data = data.entrydraft;
-            // Create an instance of SnackBar
+            /**
+             * Instantiate a SnackBar
+             */
             const snackbar = new SnackBar();
             snackbar.simple('You have unpublished changes', '#fff', '#f57c00').then();
           }
-          // Update entry.
           this.entry = data;
         });
       }
     });
   }
 
-  initWebView() {
-    let webViewSrc = '~/app/editor/index.html';
+  /**
+   * Setup web view
+   */
+  initWebView(): void {
+    let webViewSrc = '~/assets/editor/index.html';
     let webviewN = this.webView.nativeElement;
     this.oWebViewInterface = new WebViewInterface(this.webView.nativeElement, webViewSrc);
     webviewN.on(WebView.loadStartedEvent, function (args: LoadEventData) {
@@ -93,11 +117,19 @@ export class WriteComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Set entry content
+   *
+   * @param content Content to set
+   */
   setContent(content: string): void {
     this.oWebViewInterface.emit('setContent', content);
   }
 
-  presentConfirm() {
+  /**
+   * Display a action box with 2 options: 'Publish' and 'Not yet'
+   */
+  presentConfirm(): void {
     dialogs.confirm({
       title: 'Ready to publish?',
       message: 'Your message',
@@ -112,12 +144,15 @@ export class WriteComponent implements OnInit, OnDestroy {
           (response: { content: string, contentEquality: boolean }): void => {
             this.entry.content = response.content;
             this.updateEntry(result ? EntryStatuses.PUBLISHED : EntryStatuses.DRAFT);
-          }
+          },
         );
       }
     });
   }
 
+  /**
+   * Update entry and navigate back to posts/pages
+   */
   goBack(): void {
     this.oWebViewInterface.callJSFunction(
       'getContent',
@@ -127,12 +162,16 @@ export class WriteComponent implements OnInit, OnDestroy {
           this.entry.content = response.content;
         }
         let isEqual = equal(this.entry, this.oldEntry);
-        // Check equality.
+        /**
+         * Check equality
+         */
         if (this.oldEntry.entrydraft) {
           isEqual = equal(this.entry, this.oldEntry.entrydraft);
         }
         if (!isEqual) {
-          // Check if entry's status is published.
+          /**
+           * Check if entry's status is published
+           */
           if (this.entry.status === EntryStatuses.PUBLISHED) {
             delete this.entry.status;
           }
@@ -144,31 +183,25 @@ export class WriteComponent implements OnInit, OnDestroy {
           console.log('EQUAL');
           this.ngZone.run((): Promise<boolean> => this.routerExtensions.navigate(['/dash', 'posts']));
         }
-      }
+      },
     );
   }
 
   /**
-   * Update entry.
+   * Update entry
    *
-   * @param status Status of entry.
+   * @param status Status of entry
    */
   async updateEntry(status?: number): Promise<void> {
-    // If draft, then change entry's status.
     this.entry.status = status;
-    // API call.
-    await this.entryService.put(`website/entry/${this.entryId}/`, this.entry).toPromise().then((data: Entry): void => {
-      // Update entry data.
+    await this.writeService.updateEntry(this.entryId, this.entry).toPromise().then((data: Entry): void => {
       this.entry = data;
-      // Update old entry data.
       this.oldEntry = cloneDeep(data);
       this.setContent(data.content);
-    }, (error: Array<Object>): void => {
     });
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.changeDetectorRef.detach();
   }
-
 }
