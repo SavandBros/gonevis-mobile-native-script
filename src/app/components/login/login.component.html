@@ -1,6 +1,4 @@
-<ActionBar class="action-bar">
-  <Label class="action-bar-title" text="Login"></Label>
-</ActionBar>
+<ActionBar title="Login"></ActionBar>
 
 <StackLayout class="form p-30" [formGroup]="logInForm">
   <StackLayout>
@@ -17,8 +15,6 @@
                returnKeyType="done" (returnPress)="login()"></TextField>
   </StackLayout>
 
-  <Button text="Log In" class="btn btn-primary btn-blue" (tap)="login()" [isEnabled]="!loading"></Button>
+  <Button text="Log In" class="-primary -active" (tap)="login()" [isEnabled]="!loading"></Button>
   <ActivityIndicator [busy]="loading"></ActivityIndicator>
 </StackLayout>
-
-<!--<Button text="login works!" class="btn btn-primary" [routerLink]="['dash']"></Button>-->

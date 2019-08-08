@@ -50,14 +50,8 @@ export class LoginComponent implements OnInit {
     // Detect changes.
     this.cdRef.detectChanges();
 
-    // Payload required by BackEnd.
-    const payload: { username: string, password: string } = {
-      username: this.form.username.value,
-      password: this.form.password.value
-    };
-
     // API call
-    this.authService.login(payload).subscribe((data: string): void => {
+    this.authService.login(this.form.username.value, this.form.password.value).subscribe((data: string): void => {
       // Update loading state.
       this.loading = false;
       // Redirect user to 'Entries' page
