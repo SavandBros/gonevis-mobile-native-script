@@ -11,11 +11,11 @@ const routes: Routes = [{
 }, {
     path: 'dash',
     loadChildren: '~/app/components/dash/dash.module#DashModule',
-    canActivate: [AuthGuardService]
+    canLoad: [AuthGuardService]
 }, {
     path: 'login',
     loadChildren: '~/app/components/login/login.module#LoginModule',
-    canActivate: [AnonymousGuardService]
+    canLoad: [AnonymousGuardService]
 }, {
     path: 'home',
     loadChildren: '~/app/home/home.module#HomeModule'
