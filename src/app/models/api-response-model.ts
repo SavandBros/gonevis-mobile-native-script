@@ -7,7 +7,7 @@ export class ApiResponseModel<T> {
   results: T[] = [];
 
   constructor(init: ApiResponse<T>) {
-    this.count = 6;
+    this.count = init.count;
     this.next = init.next;
     this.previous = init.previous;
     this.results = init.results;
