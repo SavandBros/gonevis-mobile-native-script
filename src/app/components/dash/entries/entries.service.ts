@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { ApiResponse } from '@app/interfaces/api-response';
 import { EntriesResponse } from '@app/interfaces/entries-response';
 import { Entry } from '@app/interfaces/entry';
+import { ApiResponseModel } from '@app/models/api-response-model';
 import { ApiService } from '@app/services/api/api.service';
 import { BlogService } from '@app/services/blog/blog.service';
 import { Observable } from 'rxjs';
@@ -33,7 +34,7 @@ export class EntriesService {
 
     return this.http.get<ApiResponse<Entry>>(`${this.apiService.base.v1}website/entry/`, { params: httpParams }).pipe(
       map((data: ApiResponse<Entry>): EntriesResponse => {
-        return { response: data, status };
+        return { response: new ApiResponseModel(data), status };
       }),
     );
   }
