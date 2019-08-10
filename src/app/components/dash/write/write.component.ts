@@ -143,7 +143,6 @@ export class WriteComponent implements OnInit {
   presentConfirm(): void {
     dialogs.confirm({
       title: 'Ready to publish?',
-      message: 'Your message',
       okButtonText: 'Publish',
       cancelButtonText: 'Not yet',
       neutralButtonText: 'Cancel',
@@ -206,8 +205,12 @@ export class WriteComponent implements OnInit {
   async updateEntry(status?: number): Promise<void> {
     this.entry.status = status;
     await this.writeService.updateEntry(this.entryId, this.entry).toPromise().then((data: Entry): void => {
+      let entryType = data.is_page ? 'Page' : 'Post';
+      let updateType = data.status === EntryStatuses.PUBLISHED ? 'published' : 'drafted';
+      let snackBarBackgroundColor = data.status === EntryStatuses.PUBLISHED ? '#00caab' : '#5c687c';
       this.entry = data;
       this.oldEntry = cloneDeep(data);
+      this.snackBar.simple(`${entryType} ${updateType} successfully`, '#fff', snackBarBackgroundColor);
       this.setContent(data.content);
     });
   }
