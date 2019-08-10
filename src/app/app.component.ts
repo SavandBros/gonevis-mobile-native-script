@@ -1,3 +1,4 @@
+import { DrawerService } from '@app/services/drawer/drawer.service';
 import { ItemEventData } from 'tns-core-modules/ui/list-view'
 import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { UrlTree } from '@angular/router';
@@ -68,6 +69,12 @@ export class AppComponent implements OnInit, AfterViewInit {
      */
     BlogService.blog.subscribe((blog: BlogMinimalUser): void => {
       this.blog = blog;
+    });
+
+    DrawerService.drawerToggle.subscribe((): void => {
+      if (this.drawer) {
+        this.drawer.showDrawer();
+      }
     });
   }
 
