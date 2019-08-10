@@ -1,31 +1,43 @@
 <Page class="page" (loaded)="onPageLoaded()">
-  <ActionBar title="Posts">
-    <ActionItem icon="font://&#xF0c9;" class="fas action-bar-icon" ios.position="left">
-    </ActionItem>
+  <ActionBar [title]="title" class="nt-action-bar">
+    <ActionItem icon="font://&#xF0c9;" class="fas action-bar-icon" ios.position="left"
+                (tap)="toggleDrawer()"></ActionItem>
   </ActionBar>
-  <SegmentedBar [items]="hello" selectedIndex="0" class="m-5"></SegmentedBar>
-  <RadListView #radListViewComponent
-               [items]="entries ? entries.results : []"
-               pullToRefresh="true"
-               (pullToRefreshInitiated)="getEntries($event)"
-               loadOnDemandMode="Auto"
-               (loadMoreDataRequested)="loadMore($event)"
-               (itemTap)="navigateToWrite($event)">
-    <ng-template let-entry="item" let-index="index">
-      <StackLayout orientation="vertical" borderBottomWidth="1px" borderBottomColor="#eee">
-        <Label class="font-weight-bold" [text]="entry.title"></Label>
-        <Label [text]="entry.excerpt" class="m-b-10"></Label>
-        <flexbox-layout alignItems="center">
-          <!-- Draft -->
-          <Label [text]="'Edited ' + (entry.updated | date)" color="#aaa"
-                 *ngIf="entry.status === entryStatuses().DRAFT" flexGrow="1"></Label>
-          <!-- Published -->
-          <Label [text]="'Published ' + (entry.published | date)" color="#aaa"
-                 *ngIf="entry.status === entryStatuses().PUBLISHED"
-                 flexGrow="1"></Label>
-          <Label (tap)="options(entry.id, index)" color="#aaa" class="fas" text="&#xf141;"></Label>
-        </flexbox-layout>
-      </StackLayout>
-    </ng-template>
-  </RadListView>
+  <GridLayout rows="auto, *">
+    <!-- Segmented bar -->
+    <stack-layout *ngIf="currentTab">
+      <SegmentedBar [items]="segmentedBarItems" (selectedIndexChange)="onSegmentChange($event)"
+                    [selectedIndex]="currentTab.status"></SegmentedBar>
+    </stack-layout>
+    <!-- Entries s -->
+    <RadListView row="1" column="1" #radListViewComponent
+                 [items]="entryList"
+                 pullToRefresh="true"
+                 (pullToRefreshInitiated)="getEntries($event)"
+                 loadOnDemandMode="Auto"
+                 (loadMoreDataRequested)="loadMore($event)"
+                 (itemTap)="navigateToWrite($event)">
+      <ng-template let-entry="item" let-index="index">
+        <StackLayout orientation="vertical" borderBottomWidth="1px" borderBottomColor="#eee">
+          <Label class="font-weight-bold" [text]="entry.title"></Label>
+          <Label [text]="entry.excerpt" class="m-b-10"></Label>
+          <flexbox-layout alignItems="center">
+            <!-- Draft -->
+            <Label [text]="'Edited ' + (entry.updated | date)" color="#aaa"
+                   *ngIf="entry.status === entryStatuses().DRAFT" flexGrow="1"></Label>
+            <!-- Published -->
+            <Label [text]="'Published ' + (entry.published | date)" color="#aaa"
+                   *ngIf="entry.status === entryStatuses().PUBLISHED"
+                   flexGrow="1"></Label>
+            <Label (tap)="options(entry.id, index)" color="#aaa" class="fas" text="&#xf141;"></Label>
+          </flexbox-layout>
+        </StackLayout>
+      </ng-template>
+    </RadListView>
+    <!-- Nothing text -->
+    <absolute-layout row="1" alignSelf="center" horizontalAlignment="center"
+                     verticalAlignment="center" *ngIf="!entryList.length">
+      <Label color="#aaa" textAlignment="center" text="No posts here"></Label>
+    </absolute-layout>
+  </GridLayout>
 </Page>

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Data, Params, Router } from '@angular/router';
 import { EntriesService } from '@app/components/dash/entries/entries.service';
@@ -8,12 +8,13 @@ import { EntriesResponse } from '@app/interfaces/entries-response';
 import { Entry } from '@app/interfaces/entry';
 import { EntryTab } from '@app/interfaces/entry-tab';
 import { ApiService } from '@app/services/api/api.service';
+import { DrawerService } from '@app/services/drawer/drawer.service';
 import { RouterExtensions } from 'nativescript-angular';
 import { ListViewEventData, ListViewLoadOnDemandMode } from 'nativescript-ui-listview';
 import { RadListViewComponent } from 'nativescript-ui-listview/angular';
 import { LoadOnDemandListViewEventData } from 'nativescript-ui-listview/ui-listview.common';
 import { action, ActionOptions, ConfirmOptions, confirm } from 'tns-core-modules/ui/dialogs';
-import { SegmentedBarItem } from 'tns-core-modules/ui/segmented-bar';
+import { SegmentedBarItem, SegmentedBar, SelectedIndexChangedEventData } from 'tns-core-modules/ui/segmented-bar';
 
 @Component({
   selector: 'ns-entries',
@@ -21,7 +22,7 @@ import { SegmentedBarItem } from 'tns-core-modules/ui/segmented-bar';
   styleUrls: ['./entries.component.css'],
   moduleId: module.id,
 })
-export class EntriesComponent implements OnInit {
+export class EntriesComponent implements OnInit, OnDestroy {
 
   /**
    * RadListView component reference
@@ -29,16 +30,21 @@ export class EntriesComponent implements OnInit {
   @ViewChild('radListViewComponent', { static: false }) radListView: RadListViewComponent;
 
   /**
+   * Page title
+   */
+  title: string;
+
+  /**
    * Entry tabs
    */
   tabs: EntryTab[] = [{
-    label: 'Published',
-    queryParam: 'published',
-    status: EntryStatuses.PUBLISHED,
-  }, {
     label: 'Draft',
     queryParam: 'draft',
     status: EntryStatuses.DRAFT,
+  }, {
+    label: 'Published',
+    queryParam: 'published',
+    status: EntryStatuses.PUBLISHED,
   }];
 
   /**
@@ -54,7 +60,12 @@ export class EntriesComponent implements OnInit {
   /**
    * Entries API response
    */
-  entries: ApiResponse<Entry>;
+  entryList: Entry[] = [];
+
+  /**
+   * Next endpoint
+   */
+  next: string;
 
   /**
    * Indicates whether to load pages or posts
@@ -66,7 +77,10 @@ export class EntriesComponent implements OnInit {
    */
   searchForm: FormGroup;
 
-  hello: SegmentedBarItem[] = [];
+  /**
+   * Segmented bar items
+   */
+  segmentedBarItems: SegmentedBarItem[] = [];
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
@@ -81,7 +95,7 @@ export class EntriesComponent implements OnInit {
     this.tabs.map((tab: EntryTab): void => {
       const item = new SegmentedBarItem();
       item.title = tab.label;
-      this.hello.push(item);
+      this.segmentedBarItems.push(item);
     });
     /**
      * Setup search form
@@ -94,6 +108,7 @@ export class EntriesComponent implements OnInit {
      */
     this.activatedRoute.queryParams.subscribe((params: Params): void => {
       this.isPage = this.activatedRoute.snapshot.data.isPage;
+      this.title = this.isPage ? 'Pages': 'Posts';
       this.currentTab = this.tabs.find((tab: EntryTab): boolean => params.status === tab.queryParam);
       if (!this.currentTab) {
         this.router.navigate([], {
@@ -122,31 +137,47 @@ export class EntriesComponent implements OnInit {
    */
   getEntries(args?: ListViewEventData): void {
     this.loading = true;
+
     // API call
     this.entriesService.getEntries(this.isPage, this.currentTab.status, this.searchForm.controls.text.value)
       .subscribe((data: EntriesResponse): void => {
         this.loading = false;
+        /**
+         * If there is pagination, then activate load on demands
+         */
+        if (data.response.next) {
+          this.radListView.nativeElement.loadOnDemandMode = ListViewLoadOnDemandMode.Auto;
+        } else {
+          this.radListView.nativeElement.loadOnDemandMode = ListViewLoadOnDemandMode.None;
+        }
         if (this.currentTab.status !== data.status) {
+          if (args) {
+            this.radListView.nativeElement.notifyPullToRefreshFinished();
+          }
           return;
         }
-        this.entries = data.response;
-        /**
-         * Detect changes
-         */
-        this.changeDetectionRef.detectChanges();
+        // this.entries = data.response;s
+        this.next = data.response.next;
+        this.entryList = data.response.results;
+
         /**
          * If args exist, then stop refreshing
          */
         if (args) {
           this.radListView.nativeElement.notifyPullToRefreshFinished();
         }
-        /**
-         * If there is pagination, then activate load on demand
-         */
-        if (data.response.next) {
-          this.radListView.nativeElement.loadOnDemandMode = ListViewLoadOnDemandMode.Auto;
-        }
       });
+  }
+
+  /**
+   * On segment change callback
+   *
+   * @param args
+   */
+  onSegmentChange(args: SelectedIndexChangedEventData): void {
+    let segmentedBar = <SegmentedBar>args.object;
+    this.currentTab = this.tabs[segmentedBar.selectedIndex];
+    this.getEntries();
   }
 
   /**
@@ -155,24 +186,27 @@ export class EntriesComponent implements OnInit {
    * @param args Load on demand event
    */
   loadMore(args: LoadOnDemandListViewEventData): void {
-    if (!this.entries.next) {
+    if (!this.next) {
       return;
     }
-    this.apiService.getEndpoint<Entry>(this.entries.next)
-      .subscribe((data: ApiResponse<Entry>): void => {
-        this.entries.next = data.next;
-        this.entries.previous = data.previous;
-        data.results.map((entry: Entry): void => {
-          this.entries.results.push(entry);
-        });
-        /**
-         * Deactivate load on demand
-         */
-        if (!data.next) {
-          this.radListView.nativeElement.loadOnDemandMode = ListViewLoadOnDemandMode.None;
-        }
+    this.apiService.getEndpoint<Entry>(this.next).subscribe((data: ApiResponse<Entry>): void => {
+      if (data.results[0].status !== this.currentTab.status) {
         this.radListView.nativeElement.notifyLoadOnDemandFinished();
+        return;
+      }
+      this.next = data.next;
+      data.results.map((entry: Entry): void => {
+        this.entryList.push(entry);
       });
+      this.changeDetectionRef.detectChanges();
+      /**
+       * Deactivate load on demand
+       */
+      if (!data.next) {
+        this.radListView.nativeElement.loadOnDemandMode = ListViewLoadOnDemandMode.None;
+      }
+      this.radListView.nativeElement.notifyLoadOnDemandFinished();
+    });
   }
 
   /**
@@ -207,7 +241,7 @@ export class EntriesComponent implements OnInit {
         confirm(confirmOptions).then((confirmResult: boolean): void => {
           if (confirmResult) {
             this.entriesService.removeEntry(entryId).subscribe((): void => {
-              this.entries.results.splice(index, 1);
+              this.entryList.splice(index, 1);
               /**
                * Detect changes
                */
@@ -231,7 +265,7 @@ export class EntriesComponent implements OnInit {
    * @param args Generic scheme for event arguments provided to handlers of events exposed
    */
   navigateToWrite(args: ListViewEventData): void {
-    this.routerExtensions.navigate(['dash', 'write', this.entries.results[args.index].id]);
+    this.routerExtensions.navigate(['dash', 'write', this.entryList[args.index].id]);
   }
 
   /**
@@ -239,5 +273,16 @@ export class EntriesComponent implements OnInit {
    */
   entryStatuses(): typeof EntryStatuses {
     return EntryStatuses
+  }
+
+  /**
+   * Toggle drawer
+   */
+  toggleDrawer(): void {
+    DrawerService.toggleDrawer();
+  }
+
+  ngOnDestroy(): void {
+    this.changeDetectionRef.detach();
   }
 }
