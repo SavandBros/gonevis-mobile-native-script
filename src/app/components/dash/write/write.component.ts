@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, NgZone, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { WriteService } from '@app/components/dash/write/write.service';
 import { EntryStatuses } from '@app/enums/entrt-statuses';
@@ -7,8 +7,9 @@ import { BlogService } from '@app/services/blog/blog.service';
 import { SnackBar } from '@nstudio/nativescript-snackbar';
 import { RouterExtensions } from 'nativescript-angular';
 import { WebViewInterface } from 'nativescript-webview-interface';
+import { Page } from 'tns-core-modules/ui/page';
 import { LoadEventData, WebView } from 'tns-core-modules/ui/web-view';
-
+import * as utils from 'tns-core-modules/utils/utils';
 
 const equal = require('deep-equal');
 const cloneDeep = require('lodash.clonedeep');
@@ -20,7 +21,7 @@ const dialogs = require('tns-core-modules/ui/dialogs');
   styleUrls: ['./write.component.css'],
   moduleId: module.id,
 })
-export class WriteComponent implements OnInit, OnDestroy {
+export class WriteComponent implements OnInit {
 
   /**
    * Webview element reference
@@ -38,6 +39,11 @@ export class WriteComponent implements OnInit, OnDestroy {
   private oldEntry: Entry;
 
   /**
+   * Snackbar
+   */
+  private snackBar: SnackBar = new SnackBar();
+
+  /**
    * Webview interface
    */
   oWebViewInterface: WebViewInterface;
@@ -53,7 +59,8 @@ export class WriteComponent implements OnInit, OnDestroy {
               private routerExtensions: RouterExtensions,
               private route: ActivatedRoute,
               private ngZone: NgZone,
-              private writeService: WriteService) {
+              private writeService: WriteService,
+              private pageView: Page) {
   }
 
   ngOnInit() {
@@ -78,13 +85,17 @@ export class WriteComponent implements OnInit, OnDestroy {
             /**
              * Instantiate a SnackBar
              */
-            const snackbar = new SnackBar();
-            snackbar.simple('You have unpublished changes', '#fff', '#f57c00').then();
+            this.snackBar.simple('You have unpublished changes', '#fff', '#f57c00');
           }
           this.entry = data;
         });
       }
     });
+
+    this.pageView.on(Page.navigatingFromEvent, (): void => {
+      this.snackBar.dismiss();
+      utils.ad.dismissSoftInput();
+    })
   }
 
   /**
@@ -199,9 +210,5 @@ export class WriteComponent implements OnInit, OnDestroy {
       this.oldEntry = cloneDeep(data);
       this.setContent(data.content);
     });
-  }
-
-  ngOnDestroy(): void {
-    this.changeDetectorRef.detach();
   }
 }
