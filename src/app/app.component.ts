@@ -93,6 +93,19 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   /**
+   * Get blog logo
+   *
+   * @param blog Blog to get logo
+   */
+  getBlogLogo(blog: BlogMinimalUser): string {
+    if (blog.media.logo) {
+      return blog.media.logo.thumbnail_48x48;
+    }
+
+    return '~/assets/img/default/48x48.png';
+  }
+
+  /**
    * Navigate to page and close side drawer
    *
    * @param event List view event
