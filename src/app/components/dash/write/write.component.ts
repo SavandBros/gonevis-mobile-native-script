@@ -95,6 +95,7 @@ export class WriteComponent implements OnInit {
     this.pageView.on(Page.navigatingFromEvent, (): void => {
       this.snackBar.dismiss();
       utils.ad.dismissSoftInput();
+      this.oWebViewInterface.destroy();
     })
   }
 
