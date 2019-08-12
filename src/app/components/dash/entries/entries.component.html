@@ -1,4 +1,5 @@
-<Page class="page" (loaded)="onPageLoaded()">
+<Page class="nt-page" backgroundColor="#eee"
+      (loaded)="onPageLoaded()">
   <ActionBar [title]="title" class="nt-action-bar">
     <ActionItem icon="font://&#xF0c9;" class="fas action-bar-icon" ios.position="left"
                 (tap)="toggleDrawer()"></ActionItem>
@@ -9,7 +10,7 @@
       <SegmentedBar [items]="segmentedBarItems" (selectedIndexChange)="onSegmentChange($event)"
                     [selectedIndex]="currentTab.status"></SegmentedBar>
     </stack-layout>
-    <!-- Entries s -->
+    <!-- Entries -->
     <RadListView row="1" column="1" #radListViewComponent
                  [items]="entryList"
                  pullToRefresh="true"
@@ -18,7 +19,7 @@
                  (loadMoreDataRequested)="loadMore($event)"
                  (itemTap)="navigateToWrite($event)">
       <ng-template let-entry="item" let-index="index">
-        <StackLayout orientation="vertical" borderBottomWidth="1px" borderBottomColor="#eee">
+        <StackLayout orientation="vertical" backgroundColor="#fff" borderRadius="5">
           <Label class="font-weight-bold" [text]="entry.title"></Label>
           <Label [text]="entry.excerpt" class="m-b-10"></Label>
           <flexbox-layout alignItems="center">
