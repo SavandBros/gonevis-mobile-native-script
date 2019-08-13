@@ -56,24 +56,30 @@
 
       if (range) {
         if (range.length === 0) {
-          // Remove highlight mode.
+          // Remove highlight mode
           toolbar.classList.remove('highlighting-mode');
-          // Update selection.
+          // Update selection
           editor.selection.update(Quill.sources.SILENT);
-          // Get editor's bounds based on range's index.
-          let bounds = editor.getBounds(range.index);
-          // Scroll to current cursor.
-          editor.scrollingContainer.scrollTop = bounds.top;
-          // Scroll into view.
-          editor.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
+          // Scroll into view
+          setTimeout(function() {
+            editor.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
+          }, 250);
         } else {
           toolbar.classList.add('highlighting-mode');
         }
       }
     });
     oWebViewInterface.on('setContent', function (eventData) {
+      // Get old cursor position
+      let selection = editor.getSelection() ? editor.getSelection().index : null;
+      // Set editor content
       editor.setContents(editor.clipboard.convert(eventData));
+      // Update old content
       oldContent = Object.assign({}, editor.getContents());
+      // Update selection to old position to prevent cursor from being at first index
+      editor.setSelection(selection, 0);
+      editor.selection.update(Quill.sources.SILENT);
+      editor.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
     });
   })();
 </script>
