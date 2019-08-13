@@ -1,10 +1,9 @@
-import { DrawerService } from '@app/services/drawer/drawer.service';
-import { ItemEventData } from 'tns-core-modules/ui/list-view'
 import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { UrlTree } from '@angular/router';
 import { BlogMinimalUser } from '@app/interfaces/blog-minimal-user';
 import { UserAuth } from '@app/interfaces/user-auth';
 import { BlogService } from '@app/services/blog/blog.service';
+import { DrawerService } from '@app/services/drawer/drawer.service';
 import { RouterExtensions } from 'nativescript-angular';
 import { ListViewEventData } from 'nativescript-ui-listview/ui-listview.common';
 import { RadSideDrawer } from 'nativescript-ui-sidedrawer';
@@ -37,7 +36,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   /**
    * Current blog
    */
-  blog: BlogMinimalUser;
+  currentBlog: BlogMinimalUser;
 
   /**
    * App pages
@@ -51,6 +50,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     url: 'pages',
     icon: 'f15c',
   }];
+
+  /**
+   * Selecting blog indicator
+   */
+  selectingBlog: boolean;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private router: RouterExtensions,
@@ -68,7 +72,7 @@ export class AppComponent implements OnInit, AfterViewInit {
      * Subscribe to blog changes
      */
     BlogService.blog.subscribe((blog: BlogMinimalUser): void => {
-      this.blog = blog;
+      this.currentBlog = blog;
     });
 
     DrawerService.drawerToggle.subscribe((): void => {
@@ -112,6 +116,18 @@ export class AppComponent implements OnInit, AfterViewInit {
    */
   onNavigationsTap(event: ListViewEventData): void {
     this.router.navigate(['/dash', this.appPages[event.index].url]);
+    this.drawer.closeDrawer();
+  }
+
+  /**
+   * Set current blog and navigate to entries
+   *
+   * @param event List view event
+   */
+  onBlogTap(event: ListViewEventData): void {
+    BlogService.currentBlog = this.user.sites[event.index];
+    this.selectingBlog = false;
+    this.router.navigate(['/dash', 'posts']);
     this.drawer.closeDrawer();
   }
 
