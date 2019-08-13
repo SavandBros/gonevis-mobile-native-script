@@ -19,7 +19,7 @@
                  (loadMoreDataRequested)="loadMore($event)"
                  (itemTap)="navigateToWrite($event)">
       <ng-template let-entry="item" let-index="index">
-        <StackLayout orientation="vertical" backgroundColor="#fff" borderRadius="5">
+        <StackLayout orientation="vertical" backgroundColor="#fff" borderRadius="5" [class.loading]="loading">
           <Label class="font-weight-bold" [text]="entry.title"></Label>
           <Label [text]="entry.excerpt" class="m-b-10"></Label>
           <flexbox-layout alignItems="center">

@@ -1,1 +1,16 @@
-/* Add mobile styles for the component here.  */
+/* Add mobile styles for the component here  */
+
+@keyframes pulseFade {
+    0%, 100% {
+        opacity: 0.5
+    }
+    50% {
+        opacity: 0.9
+    }
+}
+
+.loading {
+    animation-name: pulseFade;
+    animation-duration: 0.5s;
+    animation-iteration-count: infinite;
+}
