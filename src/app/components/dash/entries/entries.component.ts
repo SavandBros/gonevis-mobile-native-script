@@ -25,19 +25,9 @@ import { SegmentedBarItem, SegmentedBar, SelectedIndexChangedEventData } from 't
 export class EntriesComponent implements OnInit, OnDestroy {
 
   /**
-   * RadListView component reference
-   */
-  @ViewChild('radListViewComponent', { static: false }) radListView: RadListViewComponent;
-
-  /**
-   * Page title
-   */
-  title: string;
-
-  /**
    * Entry tabs
    */
-  tabs: EntryTab[] = [{
+  private static tabs: EntryTab[] = [{
     label: 'Draft',
     queryParam: 'draft',
     status: EntryStatuses.DRAFT,
@@ -46,6 +36,16 @@ export class EntriesComponent implements OnInit, OnDestroy {
     queryParam: 'published',
     status: EntryStatuses.PUBLISHED,
   }];
+
+  /**
+   * RadListView component reference
+   */
+  @ViewChild('radListViewComponent', { static: false }) radListView: RadListViewComponent;
+
+  /**
+   * Page title
+   */
+  title: string;
 
   /**
    * Current entry tab
@@ -92,7 +92,7 @@ export class EntriesComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.tabs.map((tab: EntryTab): void => {
+    EntriesComponent.tabs.map((tab: EntryTab): void => {
       const item = new SegmentedBarItem();
       item.title = tab.label;
       this.segmentedBarItems.push(item);
@@ -108,8 +108,8 @@ export class EntriesComponent implements OnInit, OnDestroy {
      */
     this.activatedRoute.queryParams.subscribe((params: Params): void => {
       this.isPage = this.activatedRoute.snapshot.data.isPage;
-      this.title = this.isPage ? 'Pages': 'Posts';
-      this.currentTab = this.tabs.find((tab: EntryTab): boolean => params.status === tab.queryParam);
+      this.title = this.isPage ? 'Pages' : 'Posts';
+      this.currentTab = EntriesComponent.tabs.find((tab: EntryTab): boolean => params.status === tab.queryParam);
       if (!this.currentTab) {
         this.router.navigate([], {
           queryParams: {
@@ -142,6 +142,7 @@ export class EntriesComponent implements OnInit, OnDestroy {
     this.entriesService.getEntries(this.isPage, this.currentTab.status, this.searchForm.controls.text.value)
       .subscribe((data: EntriesResponse): void => {
         this.loading = false;
+
         /**
          * If there is pagination, then activate load on demands
          */
@@ -176,8 +177,12 @@ export class EntriesComponent implements OnInit, OnDestroy {
    */
   onSegmentChange(args: SelectedIndexChangedEventData): void {
     let segmentedBar = <SegmentedBar>args.object;
-    this.currentTab = this.tabs[segmentedBar.selectedIndex];
-    this.getEntries();
+    this.currentTab = EntriesComponent.tabs[segmentedBar.selectedIndex];
+    this.router.navigate([], {
+      queryParams: {
+        status: this.currentTab.queryParam,
+      },
+    })
   }
 
   /**
