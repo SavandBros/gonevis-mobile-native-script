@@ -108,7 +108,7 @@ export class WriteComponent implements OnInit {
     this.oWebViewInterface = new WebViewInterface(this.webView.nativeElement, webViewSrc);
     webviewN.on(WebView.loadStartedEvent, function (args: LoadEventData) {
       if (webviewN.android) {
-        webviewN.android.setBackgroundColor(0x00000000);
+        webviewN.android.getSettings().setJavaScriptEnabled(true);
         webviewN.android.getSettings().setBuiltInZoomControls(false);
         webviewN.android.setScrollContainer(false);
       } else {
