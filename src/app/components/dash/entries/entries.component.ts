@@ -1,12 +1,13 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Data, Params, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { EntriesService } from '@app/components/dash/entries/entries.service';
 import { EntryStatuses } from '@app/enums/entrt-statuses';
 import { ApiResponse } from '@app/interfaces/api-response';
 import { EntriesResponse } from '@app/interfaces/entries-response';
-import { Entry } from '@app/interfaces/entry';
+import { EntryData } from '@app/interfaces/entry-data';
 import { EntryTab } from '@app/interfaces/entry-tab';
+import { Entry } from '@app/models/entry';
 import { ApiService } from '@app/services/api/api.service';
 import { DrawerService } from '@app/services/drawer/drawer.service';
 import { RouterExtensions } from 'nativescript-angular';
@@ -40,7 +41,7 @@ export class EntriesComponent implements OnInit, OnDestroy {
   /**
    * RadListView component reference
    */
-  @ViewChild('radListViewComponent', { static: false }) radListView: RadListViewComponent;
+  @ViewChild('radListViewComponent', { read: RadListViewComponent, static: false }) radListView: RadListViewComponent;
 
   /**
    * Page title
@@ -137,6 +138,7 @@ export class EntriesComponent implements OnInit, OnDestroy {
    */
   getEntries(args?: ListViewEventData): void {
     this.loading = true;
+    this.radListView.nativeElement.notifyLoadOnDemandFinished();
 
     // API call
     this.entriesService.getEntries(this.isPage, this.currentTab.status, this.searchForm.controls.text.value)
@@ -160,6 +162,7 @@ export class EntriesComponent implements OnInit, OnDestroy {
         // this.entries = data.response;s
         this.next = data.response.next;
         this.entryList = data.response.results;
+        this.changeDetectionRef.detectChanges();
 
         /**
          * If args exist, then stop refreshing
@@ -178,6 +181,7 @@ export class EntriesComponent implements OnInit, OnDestroy {
   onSegmentChange(args: SelectedIndexChangedEventData): void {
     let segmentedBar = <SegmentedBar>args.object;
     this.currentTab = EntriesComponent.tabs[segmentedBar.selectedIndex];
+    this.entryList = [];
     this.router.navigate([], {
       queryParams: {
         status: this.currentTab.queryParam,
@@ -194,14 +198,14 @@ export class EntriesComponent implements OnInit, OnDestroy {
     if (!this.next) {
       return;
     }
-    this.apiService.getEndpoint<Entry>(this.next).subscribe((data: ApiResponse<Entry>): void => {
+    this.apiService.getEndpoint<EntryData>(this.next).subscribe((data: ApiResponse<EntryData>): void => {
       if (data.results[0].status !== this.currentTab.status) {
         this.radListView.nativeElement.notifyLoadOnDemandFinished();
         return;
       }
       this.next = data.next;
-      data.results.map((entry: Entry): void => {
-        this.entryList.push(entry);
+      data.results.map((entry: EntryData): void => {
+        this.entryList.push(new Entry(entry));
       });
       this.changeDetectionRef.detectChanges();
       /**
@@ -271,13 +275,6 @@ export class EntriesComponent implements OnInit, OnDestroy {
    */
   navigateToWrite(args: ListViewEventData): void {
     this.routerExtensions.navigate(['dash', 'write', this.entryList[args.index].id]);
-  }
-
-  /**
-   * @return Entry statuses
-   */
-  entryStatuses(): typeof EntryStatuses {
-    return EntryStatuses
   }
 
   /**
