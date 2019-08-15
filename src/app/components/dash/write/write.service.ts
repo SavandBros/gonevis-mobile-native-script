@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Entry } from '@app/interfaces/entry';
+import { EntryData } from '@app/interfaces/entry-data';
 import { Observable } from 'rxjs';
 import { ApiService } from '~/app/services/api/api.service';
 
@@ -18,8 +18,8 @@ export class WriteService {
    *
    * @param entryId Entry ID
    */
-  getEntry(entryId: string): Observable<Entry> {
-    return this.http.get<Entry>(`${this.apiService.base.v1}website/entry/${entryId}/`);
+  getEntry(entryId: string): Observable<EntryData> {
+    return this.http.get<EntryData>(`${this.apiService.base.v1}website/entry/${entryId}/`);
   }
 
   /**
@@ -28,7 +28,7 @@ export class WriteService {
    * @param entryId Entry ID
    * @param entry Entry data
    */
-  updateEntry(entryId: string, entry): Observable<Entry> {
-    return this.http.put<Entry>(`${this.apiService.base.v1}website/entry/${entryId}/`, entry);
+  updateEntry(entryId: string, entry): Observable<EntryData> {
+    return this.http.put<EntryData>(`${this.apiService.base.v1}website/entry/${entryId}/`, entry);
   }
 }

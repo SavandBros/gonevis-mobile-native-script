@@ -2,7 +2,8 @@ import { ChangeDetectorRef, Component, ElementRef, NgZone, OnInit, ViewChild } f
 import { ActivatedRoute, Params } from '@angular/router';
 import { WriteService } from '@app/components/dash/write/write.service';
 import { EntryStatuses } from '@app/enums/entrt-statuses';
-import { Entry } from '@app/interfaces/entry';
+import { EntryData } from '@app/interfaces/entry-data';
+import { EntryMinimal } from '@app/models/entry-minimal';
 import { BlogService } from '@app/services/blog/blog.service';
 import { SnackBar } from '@nstudio/nativescript-snackbar';
 import { RouterExtensions } from 'nativescript-angular';
@@ -36,7 +37,7 @@ export class WriteComponent implements OnInit {
   /**
    * Old entry
    */
-  private oldEntry: Entry;
+  private oldEntry: EntryData;
 
   /**
    * Snackbar
@@ -48,12 +49,7 @@ export class WriteComponent implements OnInit {
    */
   oWebViewInterface: WebViewInterface;
 
-  entry: Entry = {
-    title: '',
-    content: '',
-    status: EntryStatuses.DRAFT,
-    site: BlogService.currentBlog.id,
-  };
+  entry: EntryMinimal = new EntryMinimal('', '', EntryStatuses.DRAFT, BlogService.currentBlog.id);
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private routerExtensions: RouterExtensions,
@@ -77,7 +73,7 @@ export class WriteComponent implements OnInit {
        */
       if (params.entryId) {
         this.entryId = params.entryId;
-        this.writeService.getEntry(params.entryId).subscribe((data: Entry): void => {
+        this.writeService.getEntry(params.entryId).subscribe((data: EntryData): void => {
           this.initWebView();
           this.oldEntry = cloneDeep(data);
           if (data.entrydraft) {
@@ -205,7 +201,7 @@ export class WriteComponent implements OnInit {
    */
   async updateEntry(status?: number): Promise<void> {
     this.entry.status = status;
-    await this.writeService.updateEntry(this.entryId, this.entry).toPromise().then((data: Entry): void => {
+    await this.writeService.updateEntry(this.entryId, this.entry).toPromise().then((data: EntryData): void => {
       let entryType = data.is_page ? 'Page' : 'Post';
       let updateType = data.status === EntryStatuses.PUBLISHED ? 'published' : 'drafted';
       let snackBarBackgroundColor = data.status === EntryStatuses.PUBLISHED ? '#00caab' : '#5c687c';
