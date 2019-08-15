@@ -16,6 +16,6 @@ export interface File {
   file_name: string;
   size_human: string;
   is_image: boolean;
-  created: Date;
-  updated: Date;
+  created: string;
+  updated: string;
 }

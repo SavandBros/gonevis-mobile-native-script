@@ -1,15 +1,13 @@
-import { ApiResponse } from '@app/interfaces/api-response';
-
 export class ApiResponseModel<T> {
-  count: number = 0;
-  next: string = '';
-  previous: string = '';
-  results: T[] = [];
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
 
-  constructor(init: ApiResponse<T>) {
-    this.count = init.count;
-    this.next = init.next;
-    this.previous = init.previous;
-    this.results = init.results;
+  constructor(count: number, next: string, previous: string, results: T[]) {
+    this.count = count;
+    this.next = next;
+    this.previous = previous;
+    this.results = results;
   }
 }
