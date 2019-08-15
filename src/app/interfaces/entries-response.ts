@@ -1,10 +1,10 @@
-import { ApiResponse } from '@app/interfaces/api-response';
-import { Entry } from '@app/interfaces/entry';
+import { ApiResponseModel } from '@app/models/api-response-model';
+import { Entry } from '@app/models/entry';
 
 /**
  * Represents modified entries response
  */
 export interface EntriesResponse {
-  response: ApiResponse<Entry>;
+  response: ApiResponseModel<Entry>;
   status: number;
 }
