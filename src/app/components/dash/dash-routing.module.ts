@@ -8,32 +8,32 @@ const routes: Routes = [{
   component: DashComponent,
   children: [{
     path: 'write',
-    loadChildren: '~/app/components/dash/write/write.module#WriteModule'
+    loadChildren: '~/app/components/dash/write/write.module#WriteModule',
   }, {
     path: 'write/:entryId',
-    loadChildren: '~/app/components/dash/write/write.module#WriteModule'
+    loadChildren: '~/app/components/dash/write/write.module#WriteModule',
   }, {
     path: 'posts',
     loadChildren: '~/app/components/dash/entries/entries.module#EntriesModule',
     data: {
-      isPage: false
-    }
-  },{
+      isPage: false,
+    },
+  }, {
     path: 'pages',
     loadChildren: '~/app/components/dash/entries/entries.module#EntriesModule',
     data: {
-      isPage: true
-    }
+      isPage: true,
+    },
   }, {
     path: '',
     redirectTo: 'posts',
-    pathMatch: 'full'
-  }]
+    pathMatch: 'full',
+  }],
 }];
 
 @NgModule({
   imports: [NativeScriptRouterModule.forChild(routes)],
-  exports: [NativeScriptRouterModule]
+  exports: [NativeScriptRouterModule],
 })
 export class DashRoutingModule {
 }
