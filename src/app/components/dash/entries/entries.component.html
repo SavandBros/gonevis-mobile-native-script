@@ -1,46 +1,39 @@
-<Page class="nt-page" backgroundColor="#eee"
-      (loaded)="onPageLoaded()">
+<Page class="nt-page" backgroundColor="#eee">
   <ActionBar [title]="title" class="nt-action-bar">
     <ActionItem icon="font://&#xF0c9;" class="fas action-bar-icon" ios.position="left"
                 (tap)="toggleDrawer()"></ActionItem>
   </ActionBar>
-  <GridLayout rows="auto, *">
-    <!-- Segmented bar -->
-    <stack-layout *ngIf="currentTab">
+  <GridLayout rows="auto, *, auto">
+    <!-- Segmented bar s-->
+    <stack-layout row="0" *ngIf="currentTab">
       <SegmentedBar [items]="segmentedBarItems" (selectedIndexChange)="onSegmentChange($event)"
                     [selectedIndex]="currentTab.status"></SegmentedBar>
     </stack-layout>
     <!-- Entries -->
-    <RadListView row="1" column="1" #radListViewComponent
+    <RadListView row="1" #radListViewComponent
                  [items]="entryList"
-                 pullToRefresh="true"
-                 (pullToRefreshInitiated)="getEntries($event)"
                  loadOnDemandMode="Auto"
+                 loadOnDemandBufferSize="20"
                  (loadMoreDataRequested)="loadMore($event)"
                  (itemTap)="navigateToWrite($event)">
-      <ng-template let-entry="item" let-index="index">
-        <StackLayout orientation="vertical" backgroundColor="#fff"
-                     borderRadius="5" [class.loading]="loading">
+      <ng-template let-entry="item" let-index="index" tkListItemTemplate>
+        <StackLayout backgroundColor="#fff" borderRadius="5" [class.loading]="loading">
           <Label class="font-weight-bold" [text]="entry.title"></Label>
-          <Label [text]="entry.excerpt" class="m-b-10"></Label>
-          <flexbox-layout alignItems="center">
+          <Label [text]="entry.excerpt" class="m-b-5"></Label>
+          <GridLayout rows="*" columns="*, auto">
             <!-- Draft -->
-            <Label [text]="'Edited ' + (entry.updated | date)" color="#aaa" *ngIf="entry.isDraft" flexGrow="1">
+            <Label row="0" col="0" [text]="'Edited ' + (entry.updated | date)" class="c-grey-light"
+                   *ngIf="entry.isDraft">
             </Label>
             <!-- Published -->
-            <Label [text]="'Published ' + (entry.published | date)" color="#aaa" *ngIf="!entry.isDraft"
-                   flexGrow="1"></Label>
-            <Label (tap)="options(entry.id, index)" color="#aaa" class="fas" text="&#xf141;"></Label>
-          </flexbox-layout>
+            <Label row="0" col="0" [text]="'Published ' + (entry.published | date)" class="c-grey-light"
+                   *ngIf="!entry.isDraft"></Label>
+            <Label row="0" col="1" (tap)="options(entry.id, index)" class="fas c-grey-light" text="&#xf141;"></Label>
+          </GridLayout>
         </StackLayout>
       </ng-template>
-      <ng-template tkTemplateKey="start" let-item="item">
-        <StackLayout orientation="vertical" class="blackStackLayout">
-          <Label [text]="item.name" class="nameLabel yellowText"></Label>
-          <Label [text]="item.type" class="typeLabel yellowText middleLabel"></Label>
-          <Label [text]="item.description" class="descriptionLabel yellowText"></Label>
-        </StackLayout>
-      </ng-template>
+      <ListViewLinearLayout tkListViewLayout scrollDirection="Vertical" itemInsertAnimation="Default"
+                            itemDeleteAnimation="Default"></ListViewLinearLayout>
     </RadListView>
     <!-- Nothing text -->
     <absolute-layout row="1" alignSelf="center" horizontalAlignment="center"
