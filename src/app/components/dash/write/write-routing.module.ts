@@ -5,12 +5,16 @@ import { WriteComponent } from '~/app/components/dash/write/write.component';
 
 const routes: Routes = [{
   path: '',
-  component: WriteComponent
+  component: WriteComponent,
+  children: [{
+    path: 'tagging',
+    loadChildren: './tagging/tagging.module#TaggingModule',
+  }],
 }];
 
 @NgModule({
   imports: [NativeScriptRouterModule.forChild(routes)],
-  exports: [NativeScriptRouterModule]
+  exports: [NativeScriptRouterModule],
 })
 export class WriteRoutingModule {
 }

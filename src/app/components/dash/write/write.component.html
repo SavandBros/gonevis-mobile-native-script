@@ -1,12 +1,97 @@
-<Page class="nt-page">
-  <ActionBar class="action-bar" title="">
+<Page class="nt-page" id="writePage" (loaded)="onPageLoaded($event)">
+  <ActionBar class="nt-action-bar" title="">
     <NavigationButton text="Close" android.systemIcon="ic_menu_back" (tap)="goBack()"></NavigationButton>
-    <ActionItem ios.position="right" text="Publish" android.position="actionBar" (tap)="presentConfirm()"></ActionItem>
+    <ActionItem ios.position="right" [icon]="managingTags ? 'font://&#xF00C;' : 'font://&#xf382;'"
+                class="fas action-bar-icon" android.position="actionBar"
+                (tap)="showUpdateSheet()"></ActionItem>
   </ActionBar>
-  <GridLayout height="100%" width="100%">
-    <FlexboxLayout height="100%" flexDirection="column">
-      <!-- Add your page content here -->
-      <WebView #webView height="100%"></WebView>
-    </FlexboxLayout>
+  <GridLayout rows="*" columns="*">
+    <!-- Add your page contest -->
+    <WebView row="0" col="0" #webView id="hello"></WebView>
   </GridLayout>
+
 </Page>
+<StackLayout id="backdrop"
+             [visibility]="updateSheet ? 'visible' : 'hidden'"
+             (tap)="hideUpdateSheet()"></StackLayout>
+<StackLayout id="hiddenLayout"
+             class="p-y-10 p-x-15"
+             borderTopLeftRadius="10"
+             borderTopRightRadius="10"
+             [translateY]="pageHeight"
+             (tap)="updateSheet = true"
+             [height]="pageHeight/4">
+
+  <!-- Tag management -->
+  <GridLayout *ngIf="entry && managingTags" rows="auto, *" columns="*, auto">
+    <SearchBar hint="Search tags" row="0"
+               [text]="searchText"
+               (loaded)="onSearchBarLoaded($event)"
+               (textChange)="onTagSearchTextChanged($event)">
+    </SearchBar>
+    <!-- Auto completed tags -->
+    <GridLayout row="1" *ngIf="filteredTags.length">
+      <ListView [items]="filteredTags" class="nt-list-view" (itemTap)="addTag($event)">
+        <ng-template let-tag="item">
+          <Label [text]="tag.name" class="list-group-item-heading"></Label>
+        </ng-template>
+      </ListView>
+    </GridLayout>
+    <!-- Entry tags -->
+    <GridLayout row="1" *ngIf="entry && !filteredTags.length">
+      <RadListView #myListView [items]="entry.tags" selectionBehavior="None"
+                   (itemSwipeProgressStarted)="onSwipeCellStarted($event)"
+                   swipeActions="true">
+        <ng-template tkListItemTemplate let-tag="item">
+          <StackLayout backgroundColor="white">
+            <GridLayout rows="*" columns="48, *">
+              <Image [src]="tag.getCoverTiny()" col="0" class="img-rounded" width="48" height="48"></Image>
+              <StackLayout col="1">
+                <Label class="font-weight-bold" [text]="tag.name"></Label>
+                <Label class="c-grey-light" [text]="'#' + tag.slug"></Label>
+              </StackLayout>
+            </GridLayout>
+          </StackLayout>
+        </ng-template>
+        <GridLayout *tkListItemSwipeTemplate columns="auto, *, auto">
+          <FlexboxLayout id="delete-tag-left" col="0"
+                         class="bg-danger" justifyContent="center" alignItems="center"
+                         (tap)="onActionSwipeClick($event)">
+            <Label text="&#xef1f8;" class="fas c-white p-0 m-x-20" marginRight="28"></Label>
+          </FlexboxLayout>
+          <FlexboxLayout id="delete-tag-right" col="2"
+                         class="bg-danger" justifyContent="center" alignItems="center"
+                         (tap)="onActionSwipeClick($event)">
+            <Label text="&#xef1f8;" class="fas c-white p-0 m-x-20" marginLeft="28"></Label>
+          </FlexboxLayout>
+        </GridLayout>
+      </RadListView>
+    </GridLayout>
+  </GridLayout>
+  <!-- Settings -->
+  <StackLayout *ngIf="entry && !managingTags">
+    <Label text="Tags" class="font-weight-medium"></Label>
+    <ScrollView orientation="horizontal">
+      <StackLayout orientation="horizontal" class="tags" (tap)="manageTags()">
+        <Label [text]="tag.name" class="p-y-5 p-x-10 m-r-5 tag" *ngFor="let tag of entry.tags"></Label>
+      </StackLayout>
+    </ScrollView>
+    <GridLayout rows="*, *" columns="*, auto">
+      <StackLayout row="0" col="0">
+        <!-- Enable commenting title -->
+        <Label text="Allow commenting"
+               textWrap="true"
+               verticalAlignment="center"
+               class="font-weight-medium"></Label>
+        <!-- Enable commenting description -->
+        <Label text="Allow community to comment on this post" class="c-grey-dark"></Label>
+      </StackLayout>
+      <!-- Enable commenting switch -->
+      <StackLayout row="0" col="1">
+        <Switch [checked]="entry.comment_enabled" (checkedChange)="onCheckedChange($event)"
+                [isEnabled]="true"></Switch>
+      </StackLayout>
+      <Button row="1" class="-primary -active" text="Post" (tap)="presentConfirm()"></Button>
+    </GridLayout>
+  </StackLayout>
+</StackLayout>
