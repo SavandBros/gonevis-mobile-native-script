@@ -2,15 +2,14 @@ import { EntryStatuses } from '@app/enums/entrt-statuses';
 import { EntryData } from '@app/interfaces/entry-data';
 import { TagData } from '@app/interfaces/tag-data';
 import { UserEntry } from '@app/interfaces/user-entry';
-import { DolphinFile } from '@app/models/dolphin-file';
 import { Media } from '@app/models/media';
 import { Tag } from '@app/models/tag';
 
 
 class EntryMedia {
-  cover_image: DolphinFile;
+  cover_image: Media;
 
-  constructor(cover_image: DolphinFile) {
+  constructor(cover_image: Media) {
     this.cover_image = cover_image;
   }
 }
@@ -99,13 +98,11 @@ export class Entry {
     } else {
       delete this.entrydraft;
     }
-    this.media = init.media && init.media.cover_image ? new EntryMedia(new DolphinFile(init.media.cover_image)) : null;
+    this.media = init.media && init.media.cover_image ? new EntryMedia(new Media(init.media.cover_image)) : null;
     this.updated_by = init.updated_by ? new EntryUser(init.updated_by) : null;
 
     if (init.tags) {
-      init.tags.map((tag: TagData): void => {
-        this.tags.push(new Tag(tag));
-      });
+      init.tags.forEach((tag: TagData): number => this.tags.push(new Tag(tag)));
     }
   }
 

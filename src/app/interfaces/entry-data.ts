@@ -1,4 +1,4 @@
-import { File } from '@app/interfaces/file';
+import { MediaData } from '@app/interfaces/media-data';
 import { TagData } from '@app/interfaces/tag-data';
 import { UserEntry } from '@app/interfaces/user-entry';
 
@@ -21,7 +21,7 @@ export interface EntryData {
   id: string;
   is_page: boolean;
   media: {
-    cover_image: File,
+    cover_image: MediaData,
   };
   meta_description: string;
   password: string;

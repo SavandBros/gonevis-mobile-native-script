@@ -32,4 +32,14 @@ export class Tag {
 
     this.media = init.media && init.media.cover_image ? new TagMedia(new DolphinFile(init.media.cover_image)) : null;
   }
+
+  /**
+   * @return Get media or default image
+   */
+  getCoverTiny(): string {
+    if (this.media && this.media.coverImage) {
+      return this.media.coverImage.thumbnail_48x48;
+    }
+    return '~/assets/img/default/48x48.png';
+  }
 }
