@@ -4,7 +4,7 @@ import { BlogMinimalUser } from '@app/interfaces/blog-minimal-user';
 import { UserAuth } from '@app/interfaces/user-auth';
 import { BlogService } from '@app/services/blog/blog.service';
 import { DrawerService } from '@app/services/drawer/drawer.service';
-import { RouterExtensions } from 'nativescript-angular';
+import { RouterExtensions } from 'nativescript-angular/router';
 import { ListViewEventData } from 'nativescript-ui-listview/ui-listview.common';
 import { RadSideDrawer } from 'nativescript-ui-sidedrawer';
 import { RadSideDrawerComponent } from 'nativescript-ui-sidedrawer/angular';

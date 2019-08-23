@@ -1,57 +1,55 @@
 <RadSideDrawer>
   <StackLayout tkDrawerContent class="nt-drawer__content">
-    <StackLayout (tap)="selectingBlog = !selectingBlog"
+    <StackLayout (tap)="selectingBlog = !selectingBlog" orientation="vertical"
                  *ngIf="authService.isAuth()" class="nt-drawer__header" height="auto">
       <!-- Blog logo -->
-      <StackLayout class="pull-left m-b-10">
-        <Image [src]="getBlogLogo(currentBlog)" width="48" height="48"
-               class="nt-drawer__header-image m-0"></Image>
-      </StackLayout>
+      <Image [src]="getBlogLogo(currentBlog)" width="48" height="48"
+             class="nt-drawer__header-image"></Image>
       <!-- Blog info -->
-      <FlexboxLayout alignItems="center">
-        <FlexboxLayout flexDirection="column" flexGrow="1">
+      <GridLayout rows="auto" columns="*, auto">
+        <StackLayout col="0" row="0">
           <!-- Title -->
           <Label [text]="currentBlog.title" textWrap="true"></Label>
           <!-- URL -->
           <Label [text]="currentBlog.url"></Label>
-        </FlexboxLayout>
+        </StackLayout>
         <!-- Caret icon -->
-        <Label text="&#xef0d7;" class="fas"></Label>
-      </FlexboxLayout>
+        <Label col="1" row="0" text="&#xef0d7;" class="fas"></Label>
+      </GridLayout>
     </StackLayout>
-    <FlexboxLayout height="100%" flexDirection="column" *ngIf="authService.isAuth() && !selectingBlog">
-      <ScrollView flexGrow="1">
-        <ListView [items]="appPages" (itemTap)="onNavigationsTap($event)" separatorColor="white">
-          <ng-template let-page="item">
-            <StackLayout orientation="horizontal" class="p-y-10 p-x-20" [ngClass]="{'active': isRouteActive(page.url)}">
-              <Label class="fas p-r-20" [text]="getIcon(page.icon)"></Label>
-              <Label [text]='page.title' alignSelf="center" textWrap="true"></Label>
-            </StackLayout>
-          </ng-template>
-        </ListView>
-      </ScrollView>
-      <StackLayout orientation="horizontal" class="p-y-10 p-x-20" (tap)="logOut()">
+    <GridLayout rows="*, auto" columns="*" *ngIf="authService.isAuth()">
+      <!-- Page list -->
+      <ListView row="0" [items]="appPages" (itemTap)="onNavigationsTap($event)" separatorColor="white"
+                *ngIf="!selectingBlog">
+        <ng-template let-page="item">
+          <StackLayout orientation="horizontal" class="p-y-10 p-x-20" [ngClass]="{'active': isRouteActive(page.url)}">
+            <Label class="fas p-r-20" [text]="getIcon(page.icon)"></Label>
+            <Label [text]='page.title' alignSelf="center" textWrap="true"></Label>
+          </StackLayout>
+        </ng-template>
+      </ListView>
+      <!-- Blog list -->
+      <ListView [items]="user.sites" (itemTap)="onBlogTap($event)" separatorColor="white"
+                *ngIf="selectingBlog === true">
+        <ng-template let-blog="item">
+          <StackLayout class="p-x-20" [ngClass]="{'active': currentBlog.id === blog.id}">
+            <GridLayout columns="48, *" rows="auto">
+              <Image [src]="getBlogLogo(blog)" class="img-rounded" width="48" col="0" height="48"
+              ></Image>
+              <StackLayout col="1" class="m-l-10">
+                <Label [text]="blog.title" class="font-weight-bold" textWrap="true"></Label>
+                <Label [text]="blog.url" color="#aaa"></Label>
+              </StackLayout>
+            </GridLayout>
+          </StackLayout>
+        </ng-template>
+      </ListView>
+      <!-- LogoutL -->
+      <StackLayout row="1" orientation="horizontal" class="p-y-10 p-x-20" (tap)="logOut()">
         <Label class="fas p-r-20" [text]="getIcon('f2f5')"></Label>
         <Label text='Logout' alignSelf="center" textWrap="true"></Label>
       </StackLayout>
-    </FlexboxLayout>
-    <FlexboxLayout height="100%" flexDirection="column" *ngIf="selectingBlog === true">
-      <ScrollView flexGrow="1">
-        <ListView [items]="user.sites" (itemTap)="onBlogTap($event)" separatorColor="white">
-          <ng-template let-blog="item">
-            <StackLayout orientation="horizontal" class="p-x-20"
-                         [ngClass]="{'active': currentBlog.id === blog.id}">
-              <Image [src]="getBlogLogo(blog)" class="m-0 m-r-20 img-rounded" alignSelf="center" width="48" height="48"
-              ></Image>
-              <FlexboxLayout flexDirection="column" alignSelf="center">
-                <Label [text]="blog.title" class="font-weight-bold" textWrap="true"></Label>
-                <Label [text]="blog.url" color="#aaa"></Label>
-              </FlexboxLayout>
-            </StackLayout>
-          </ng-template>
-        </ListView>
-      </ScrollView>
-    </FlexboxLayout>
+    </GridLayout>
   </StackLayout>
   <page-router-outlet tkMainContent class="nt-page"></page-router-outlet>
 </RadSideDrawer>
